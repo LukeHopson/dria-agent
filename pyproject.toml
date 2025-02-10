@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "dria-agent"
+version = "0.1.0"
+description = "speedy, performant and small tool calling agents"
+authors = ["andthattoo <omer@firstbatch.xyz>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+ollama = "0.4.7"
+smolagents = "^1.8.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
