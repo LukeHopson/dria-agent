@@ -127,9 +127,8 @@ def execute_row(
 
 
 def evaluate_row(
-    mock_functions,
+    functions,
     completion,
-    strict: bool = False,
     show_completion: bool = False,
 ) -> Dict[str, Any]:
     """
@@ -137,9 +136,11 @@ def evaluate_row(
     correct = 0.0
     errors = []
     results = None
+    """
     if "```python" in mock_functions:
         mock_functions = extract_codeblocks(mock_functions).strip()
     functions = import_functions(mock_functions)
+    """
     try:
         if show_completion:
             logger.info(f"Completion: {completion}")

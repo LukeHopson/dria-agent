@@ -23,7 +23,7 @@ inference_engine = ToolCallingAgent(tools=[find_next_available_slot])
 
 # --- Example 1: Using a query string ---
 query = "When can I schedule a meeting for a 30-minute duration for Samantha Reynolds?"
-final_response = inference_engine.run(query, dry_run=True)
+final_response = inference_engine.run(query, dry_run=False)
 print("Final Response (query string):")
 print(final_response)
 

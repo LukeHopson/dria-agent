@@ -2,6 +2,8 @@ import json
 from typing import List, Union, Dict
 from ollama import chat, ChatResponse
 from .prompt import system_prompt
+from pythonic.engine import evaluate_row
+
 
 class ToolCallingAgent:
     def __init__(self, tools: List, model: str = 'driaforall/Dria-Agent-a-1.5B'):
@@ -22,6 +24,7 @@ class ToolCallingAgent:
         result back to the model.
 
         :param query: A string (query) or a list of message dicts for a conversation.
+        :param dry_run: If True, returns the final response as a string instead of executing the tool.
         :return: The final ChatResponse from the model.
         """
         # If query is a string, convert it to a list of messages.
@@ -39,12 +42,15 @@ class ToolCallingAgent:
         messages.insert(0, system_message)
 
         # Make the initial call to the chat model.
-        response: ChatResponse = chat(model=self.model, messages=messages)
+        response: ChatResponse = chat(model=self.model, messages=messages, options={"temperature": 0.0})
         content = response.message.content
 
         if dry_run:
             return content
         else:
-            pass
+            results, errors = evaluate_row(completion=content, functions=[t.func for t in self.tools.values()])
+
+            for k,v in results.results.items():
+                print(k, "->", results.data[v])
 
 
