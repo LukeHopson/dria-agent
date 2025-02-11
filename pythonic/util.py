@@ -5,6 +5,7 @@ import re
 import logging
 from types import FunctionType
 
+
 def import_functions(mock_functions: str) -> List[Callable]:
     """
     Import mock functions from a string containing function definitions and return them as callable functions.

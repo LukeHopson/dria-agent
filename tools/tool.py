@@ -12,9 +12,15 @@ class ToolCall:
         self.params = {}
         for param_name, param in self.signature.parameters.items():
             self.params[param_name] = {
-                "annotation": param.annotation if param.annotation != inspect.Parameter.empty else None,
-                "default": param.default if param.default != inspect.Parameter.empty else None,
-                "kind": param.kind
+                "annotation": (
+                    param.annotation
+                    if param.annotation != inspect.Parameter.empty
+                    else None
+                ),
+                "default": (
+                    param.default if param.default != inspect.Parameter.empty else None
+                ),
+                "kind": param.kind,
             }
 
         # Extract return type.
@@ -71,8 +77,8 @@ def tool(func):
     return ToolCall(func)
 
 
-
 if __name__ == "__main__":
+
     @tool
     def find_next_available_slot(user_id: str, event_duration: int) -> str:
         """
@@ -84,6 +90,5 @@ if __name__ == "__main__":
         :raises ValueError: If user_id is invalid or no suitable time slot is found.
         """
         return "09:00"
-
 
     print(find_next_available_slot)

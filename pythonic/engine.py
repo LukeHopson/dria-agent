@@ -1,5 +1,5 @@
 from typing import Dict, Any, List, Callable
-from .schemas import FunctionResults
+from .schemas import FunctionResults, ExecutionResults
 from .util import (
     extract_codeblocks,
     import_functions,
@@ -8,6 +8,7 @@ from .util import (
 
 # Set up logger using the utility function
 logger = setup_logger(__name__)
+
 
 def execute_python_code(
     code: str,
@@ -101,56 +102,23 @@ def execute_python_code(
                     break
 
     # Return function results, variables, and any errors
-    return FunctionResults(
-        results=call_results, data=variables, errors=errors
-    )
+    return FunctionResults(results=call_results, data=variables, errors=errors)
 
 
-def execute_row(
-        row
-):
-        mock_functions = row["mock_functions"]
-        completion = row["completion"]
-        functions = import_functions(mock_functions)
-
-        # Extract code from completion if needed
-        code = (
-            extract_codeblocks(completion)
-            if "```" in completion
-            else completion
-        )
-
-        # Execute the code with mock functions
-        results = execute_python_code(code, functions)
-
-        return results
-
-
-def evaluate_row(
+def execute_tool_call(
     functions,
     completion,
     show_completion: bool = False,
-) -> Dict[str, Any]:
-    """
-    """
-    correct = 0.0
+) -> ExecutionResults:
     errors = []
     results = None
-    """
-    if "```python" in mock_functions:
-        mock_functions = extract_codeblocks(mock_functions).strip()
-    functions = import_functions(mock_functions)
-    """
+
     try:
         if show_completion:
             logger.info(f"Completion: {completion}")
 
         # Extract code from completion if needed
-        code = (
-            extract_codeblocks(completion)
-            if "```" in completion
-            else completion
-        )
+        code = extract_codeblocks(completion) if "```" in completion else completion
 
         # Execute the code with mock functions
         results = execute_python_code(code, functions)
@@ -159,4 +127,10 @@ def evaluate_row(
     except Exception as e:
         errors.append(f"Error processing row: {str(e)}")
 
-    return results, errors
+    return ExecutionResults(
+        results=results.results,
+        data=results.data,
+        errors=errors,
+        content=completion,
+        is_dry=False,
+    )

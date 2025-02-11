@@ -2,20 +2,16 @@ import json
 from typing import List, Union, Dict
 from ollama import chat, ChatResponse
 from .prompt import system_prompt
-from pythonic.engine import evaluate_row
+from .base import ToolCallingAgentBase
+from pythonic.schemas import ExecutionResults
+from pythonic.engine import execute_tool_call
 
 
-class ToolCallingAgent:
-    def __init__(self, tools: List, model: str = 'driaforall/Dria-Agent-a-1.5B'):
-        """
-        :param tools: A list of tool objects. Each tool should have a .name attribute and be callable.
-        :param model: The name of the model to use for chat inference.
-        """
-        # Build a mapping from tool names to tool objects.
-        self.tools = {tool.name: tool for tool in tools}
-        self.model = model
+class ToolCallingAgent(ToolCallingAgentBase):
+    def __init__(self, tools: List, model: str = "dria-agent-a-3b:q8_0"):
+        super().__init__(tools, model)
 
-    def run(self, query: Union[str, List[Dict]], dry_run=False) -> str:
+    def run(self, query: Union[str, List[Dict]], dry_run=False) -> ExecutionResults:
         """
         Performs an inference given a query string or a list of message dicts.
 
@@ -29,7 +25,7 @@ class ToolCallingAgent:
         """
         # If query is a string, convert it to a list of messages.
         if isinstance(query, str):
-            messages = [{'role': 'user', 'content': query}]
+            messages = [{"role": "user", "content": query}]
         else:
             messages = query.copy()
 
@@ -42,15 +38,16 @@ class ToolCallingAgent:
         messages.insert(0, system_message)
 
         # Make the initial call to the chat model.
-        response: ChatResponse = chat(model=self.model, messages=messages, options={"temperature": 0.0})
+        response: ChatResponse = chat(
+            model=self.model, messages=messages, options={"temperature": 0.0}
+        )
         content = response.message.content
 
         if dry_run:
-            return content
+            return ExecutionResults(
+                content=content, results={}, data={}, errors=[], is_dry=True
+            )
         else:
-            results, errors = evaluate_row(completion=content, functions=[t.func for t in self.tools.values()])
-
-            for k,v in results.results.items():
-                print(k, "->", results.data[v])
-
-
+            return execute_tool_call(
+                completion=content, functions=[t.func for t in self.tools.values()]
+            )
