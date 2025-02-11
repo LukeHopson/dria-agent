@@ -1,30 +1,41 @@
+import json
+from typing import List, Union, Dict
 from vllm import LLM, SamplingParams
+from .prompt import system_prompt
+from .base import ToolCallingAgentBase
+from pythonic.schemas import ExecutionResults
+from pythonic.engine import execute_tool_call
 
-# In this script, we demonstrate how to pass input to the chat method:
-conversation = [
-    {"role": "system", "content": "You are a helpful assistant"},
-    {"role": "user", "content": "Hello"},
-    {"role": "assistant", "content": "Hello! How can I assist you today?"},
-    {
-        "role": "user",
-        "content": "Write an essay about the importance of higher education.",
-    },
-]
 
-# Create a sampling params object.
-sampling_params = SamplingParams(temperature=0.8, top_p=0.95)
+class ToolCallingAgent(ToolCallingAgentBase):
+    def __init__(
+        self,
+        tools: List,
+        model: str = "driaforall/Tiny-Agent-a-3b",
+        tokenizer: str = "driaforall/Tiny-Agent-a-3b",
+    ):
+        super().__init__(tools, model)
+        self.llm = LLM(model=model, tokenizer=tokenizer)
+        self.sampling_params = SamplingParams(temperature=0.1, top_p=0.95)
 
-# Create an LLM.
-llm = LLM(
-    model="./tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf",
-    tokenizer="TinyLlama/TinyLlama-1.1B-Chat-v1.0",
-)
-# Generate texts from the prompts. The output is a list of RequestOutput objects
-# that contain the prompt, generated text, and other information.
-outputs = llm.chat(conversation, sampling_params)
-
-# Print the outputs.
-for output in outputs:
-    prompt = output.prompt
-    generated_text = output.outputs[0].text
-    print(f"Prompt: {prompt!r}, Generated text: {generated_text!r}")
+    def run(self, query: Union[str, List[Dict]], dry_run=False) -> ExecutionResults:
+        messages = (
+            [{"role": "user", "content": query}]
+            if isinstance(query, str)
+            else query.copy()
+        )
+        tool_info = "\n".join(str(tool) for tool in self.tools.values())
+        system_message = {
+            "role": "system",
+            "content": system_prompt.replace("{{functions_schema}}", tool_info),
+        }
+        messages.insert(0, system_message)
+        outputs = self.llm.chat(messages, self.sampling_params)
+        content = outputs[0].outputs[0].text
+        if dry_run:
+            return ExecutionResults(
+                content=content, results={}, data={}, errors=[], is_dry=True
+            )
+        return execute_tool_call(
+            completion=content, functions=[t.func for t in self.tools.values()]
+        )

@@ -8,9 +8,16 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.12"
-ollama = "0.4.7"
 smolagents = "^1.8.0"
+vllm = {version = "^0.7.2", optional = true}
+sentence-transformers = {version = "^3.4.1", optional = true}
+transformers = {version = "^4.48.3", optional = true}
+ollama = {version = "^0.4.7", optional = true}
 
+[tool.poetry.extras]
+vllm = ["vllm"]
+huggingface = ["transformers", "sentence-transformers"]
+ollama = ["ollama"]
 
 [build-system]
 requires = ["poetry-core"]
