@@ -1,7 +1,7 @@
 from typing import List, Union, Dict
 import logging
+import importlib.util
 
-from transformers import AutoModelForCausalLM, AutoTokenizer
 from dria_agent.agent.settings.prompt import system_prompt
 from .base import ToolCallingAgentBase
 from dria_agent.pythonic.schemas import ExecutionResults
@@ -21,6 +21,12 @@ class HuggingfaceToolCallingAgent(ToolCallingAgentBase):
         tokenizer: str = "driaforall/Tiny-Agent-a-3b",
     ):
         super().__init__(embedding, tools, model)
+        if importlib.util.find_spec("transformers") is None:
+            raise ImportError(
+                "Optional dependency 'transformers' is not installed. Install it with: pip install 'dria-agent[huggingface]'"
+            )
+        else:
+            from transformers import AutoModelForCausalLM, AutoTokenizer
         self.tokenizer = AutoTokenizer.from_pretrained(tokenizer)
         self.model = AutoModelForCausalLM.from_pretrained(model)
         self.temperature = 0.1
