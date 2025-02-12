@@ -3,14 +3,15 @@ from agent.clients.base import ToolCallingAgentBase
 from pythonic.schemas import ExecutionResults
 from pythonic.engine import execute_tool_call
 from typing import List, Union, Dict
-
+from rich.console import Console
+from rich.panel import Panel
 
 class ApiToolCallingAgent(ToolCallingAgentBase):
-    def __init__(self, tools: List, model: str = "", provider=""):
-        super().__init__(tools, model)
-        self.provider = provider
+    def __init__(self, embedding, tools: List, model: str = "", **kwargs):
+        super().__init__(embedding, tools, model)
+        self.provider = kwargs["provider"]
 
-    def run(self, query: Union[str, List[Dict]], dry_run=False) -> ExecutionResults:
+    def run(self, query: Union[str, List[Dict]], dry_run=False, show_completion=True) -> ExecutionResults:
         """
         Performs an inference given a query string or a list of message dicts.
 
@@ -41,6 +42,15 @@ class ApiToolCallingAgent(ToolCallingAgentBase):
             model=self.model, messages=messages, options={"temperature": 0.0}
         )
         content = response.message.content
+
+        if show_completion:
+            console = Console()
+            console.rule("[bold blue]Agent Response")
+            panel = Panel(
+                content, title="Agent", subtitle="End of Response", expand=False
+            )
+            console.print(panel)
+            console.rule()
 
         if dry_run:
             return ExecutionResults(
