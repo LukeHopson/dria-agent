@@ -2,27 +2,10 @@ from agent import ToolCallingAgentFactory
 from tools.tool import tool
 from rich.console import Console
 from rich.panel import Panel
-
-
-@tool
-def calculate_triangle_area(a: int, b: int, c: int) -> float:
-    """
-    Calculate the area of a triangle using Heron's formula.
-
-    :param a: Length of triangle side.
-    :param b: Length of triangle side.
-    :param c: Length of triangle side.
-    :return: The area of the triangle.
-    """
-    s = (a + b + c) / 2
-    area = s * (s - a) * (s - b) * (s - c)
-    return (area + 1e-5) ** (1 / 2)
-
+from tools.library.math_tools import ALL_TOOLS
 
 # Create an inference engine with the available tool(s).
-agent = ToolCallingAgentFactory.create(
-    tools=[calculate_triangle_area], backend="ollama"
-)
+agent = ToolCallingAgentFactory.create(tools=ALL_TOOLS, backend="mlx")
 
 console = Console()
 # --- Example 1: Using a query string ---

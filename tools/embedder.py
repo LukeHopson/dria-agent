@@ -32,28 +32,9 @@ class OllamaEmbedding(BaseEmbedding):
         return np.array(results.embeddings, dtype=np.float16)
 
     def embed_query(self, text: str) -> np.ndarray:
+        text = "Represent this sentence for searching relevant passages: " + text
         results = self.ollama.embed(model=self.model_name, input=text)
         return np.array(results.embeddings, dtype=np.float16)
-
-
-class ApiEmbedding(BaseEmbedding):
-    def __init__(
-        self,
-        provider: str,
-        model_name: str = "Snowflake/snowflake-arctic-embed-m",
-        dim: int = 768,
-    ):
-        super().__init__(model_name, dim)
-        self.provider = provider
-
-    def batch_embed(self, texts: List[Union[ToolCall, str]]) -> np.ndarray:
-        results = embed(self.model_name, provider=self.provider, texts=texts)
-        return np.array(results, dtype=np.float16)
-
-    def embed_query(self, text: str) -> np.ndarray:
-        results = embed(self.model_name, provider=self.provider, texts=[text])
-        return np.array(results, dtype=np.float16)
-
 
 class HuggingFaceEmbedding(BaseEmbedding):
     def __init__(self, dim: int = 768, model_name="Snowflake/snowflake-arctic-embed-m"):
@@ -66,4 +47,5 @@ class HuggingFaceEmbedding(BaseEmbedding):
         return self.model.encode(texts)
 
     def embed_query(self, text: str) -> np.ndarray:
-        return self.model.encode(text, prompt_name="query")
+        text = "Represent this sentence for searching relevant passages: " + text
+        return self.model.encode(text)

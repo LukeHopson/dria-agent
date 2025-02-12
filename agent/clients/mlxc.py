@@ -2,12 +2,6 @@ from typing import List, Union, Dict
 import importlib.util
 import logging
 
-if importlib.util.find_spec("mlx_lm") is None:
-    raise ImportError(
-        "Optional dependency 'ollama' is not installed. Install it with: pip install 'dria-agent[mlx]'"
-    )
-else:
-    from mlx_lm import load, generate
 from agent.settings.prompt import system_prompt
 from .base import ToolCallingAgentBase
 from pythonic.schemas import ExecutionResults
@@ -23,7 +17,14 @@ class MLXToolCallingAgent(ToolCallingAgentBase):
         self, embedding, tools: List, model: str = "driaforall/Tiny-Agent-a-3B-Q8-mlx"
     ):
         super().__init__(embedding, tools, model)
+        if importlib.util.find_spec("mlx_lm") is None:
+            raise ImportError(
+                "Optional dependency 'ollama' is not installed. Install it with: pip install 'dria-agent[mlx]'"
+            )
+        else:
+            from mlx_lm import load, generate
         self.model, self.tokenizer = load(model)
+        self.generate = generate
 
     def run(
         self, query: Union[str, List[Dict]], dry_run=False, show_completion=True
@@ -33,7 +34,11 @@ class MLXToolCallingAgent(ToolCallingAgentBase):
             if isinstance(query, str)
             else query.copy()
         )
-        tool_info = "\n".join(str(tool) for tool in self.tools.values())
+
+        inds = self.db.nearest(query, k=2)
+        tools = [list(self.tools.values())[ind] for ind in inds]
+
+        tool_info = "\n".join(str(tool) for tool in tools)
         system_message = {
             "role": "system",
             "content": system_prompt.replace("{{functions_schema}}", tool_info),
@@ -47,7 +52,7 @@ class MLXToolCallingAgent(ToolCallingAgentBase):
         else:
             prompt = "\n".join(f"{m['role']}: {m['content']}" for m in messages)
 
-        content = generate(self.model, self.tokenizer, prompt=prompt, verbose=False)
+        content = self.generate(self.model, self.tokenizer, prompt=prompt, verbose=False, max_tokens=750)
 
         if show_completion:
             console = Console()
@@ -63,5 +68,5 @@ class MLXToolCallingAgent(ToolCallingAgentBase):
                 content=content, results={}, data={}, errors=[], is_dry=True
             )
         return execute_tool_call(
-            completion=content, functions=[t.func for t in self.tools.values()]
+            completion=content, functions=[t.func for t in tools]
         )

@@ -9,10 +9,8 @@ from agent.clients.mlxc import MLXToolCallingAgent
 from agent.clients.apic import ApiToolCallingAgent
 from pythonic.schemas import ExecutionResults
 from tools.embedder import (
-    ApiEmbedding,
     OllamaEmbedding,
-    HuggingFaceEmbedding,
-    BaseEmbedding,
+    HuggingFaceEmbedding
 )
 from .checkers import check_and_install_ollama
 from rich.logging import RichHandler
@@ -49,11 +47,11 @@ class ToolCallingAgentFactory:
         "huggingface": HuggingFaceEmbedding,
         "mlx": HuggingFaceEmbedding,
         "ollama": OllamaEmbedding,
-        "api": ApiEmbedding,
+        "api": HuggingFaceEmbedding,
     }
 
     @classmethod
-    def create(cls, backend: str, tools: List, **kwargs):
+    def create(cls, tools: List, backend: str = "ollama", **kwargs):
         agent_cls = cls.BACKENDS.get(backend)
         embedding_cls = cls.EMBEDDING_MAP.get(backend)
         if not agent_cls or not embedding_cls:
@@ -65,6 +63,9 @@ class ToolCallingAgentFactory:
             logging.warning("Using %s API as backend", provider)
             if provider not in list(PROVIDER_URLS.keys()):
                 raise ValueError(f"Unknown provider: {provider}")
+
+            if provider == "ollama":
+                embedding_cls = OllamaEmbedding
 
         if backend == "ollama":
             check_and_install_ollama()

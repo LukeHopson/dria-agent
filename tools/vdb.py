@@ -19,7 +19,7 @@ class ToolDB:
             self.vectors[self.count] = e
             self.count += 1
 
-    def nearest(self, query, k=4):
+    def nearest(self, query, k=1):
         q = self.embedding.embed_query(query)
         q = np.array(q, dtype=self.vectors.dtype)
         dists = np.linalg.norm(self.vectors[: self.count] - q, axis=1)

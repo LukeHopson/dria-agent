@@ -2,12 +2,6 @@ from typing import List, Union, Dict
 import importlib.util
 import logging
 
-if importlib.util.find_spec("ollama") is None:
-    raise ImportError(
-        "Optional dependency 'ollama' is not installed. Install it with: pip install 'dria-agent[ollama]'"
-    )
-else:
-    from ollama import chat, ChatResponse
 from agent.settings.prompt import system_prompt
 from .base import ToolCallingAgentBase
 from pythonic.schemas import ExecutionResults
@@ -21,6 +15,13 @@ logger = logging.getLogger(__name__)
 class OllamaToolCallingAgent(ToolCallingAgentBase):
     def __init__(self, embedding, tools: List, model: str = "dria-agent-a-3b:q8_0"):
         super().__init__(embedding, tools, model)
+        if importlib.util.find_spec("ollama") is None:
+            raise ImportError(
+                "Optional dependency 'ollama' is not installed. Install it with: pip install 'dria-agent[ollama]'"
+            )
+        else:
+            from ollama import chat
+            self.chat = chat
 
     def run(
         self, query: Union[str, List[Dict]], dry_run=False, show_completion=True
@@ -42,7 +43,7 @@ class OllamaToolCallingAgent(ToolCallingAgentBase):
         else:
             messages = query.copy()
 
-        inds = self.db.nearest(query)
+        inds = self.db.nearest(query, k=2)
         tools = [list(self.tools.values())[ind] for ind in inds]
 
         # Create a system message listing the available tools.
@@ -54,8 +55,8 @@ class OllamaToolCallingAgent(ToolCallingAgentBase):
         messages.insert(0, system_message)
 
         # Make the initial call to the chat model.
-        response: ChatResponse = chat(
-            model=self.model, messages=messages, options={"temperature": 0.0}
+        response = self.chat(
+            model=self.model, messages=messages, options={"temperature": 0.5}
         )
         content = response.message.content
 
