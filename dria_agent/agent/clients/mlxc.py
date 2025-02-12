@@ -2,10 +2,10 @@ from typing import List, Union, Dict
 import importlib.util
 import logging
 
-from agent.settings.prompt import system_prompt
+from dria_agent.agent.settings.prompt import system_prompt
 from .base import ToolCallingAgentBase
-from pythonic.schemas import ExecutionResults
-from pythonic.engine import execute_tool_call
+from dria_agent.pythonic.schemas import ExecutionResults
+from dria_agent.pythonic.engine import execute_tool_call
 from rich.console import Console
 from rich.panel import Panel
 
@@ -27,15 +27,25 @@ class MLXToolCallingAgent(ToolCallingAgentBase):
         self.generate = generate
 
     def run(
-        self, query: Union[str, List[Dict]], dry_run=False, show_completion=True
+        self,
+        query: Union[str, List[Dict]],
+        dry_run=False,
+        show_completion=True,
+        num_tools=2,
     ) -> ExecutionResults:
+
+        if num_tools <= 0 and num_tools > 3:
+            raise RuntimeError(
+                "Number of tools cannot be less than 0 or greater than 3 for optimal performance"
+            )
+
         messages = (
             [{"role": "user", "content": query}]
             if isinstance(query, str)
             else query.copy()
         )
 
-        inds = self.db.nearest(query, k=2)
+        inds = self.db.nearest(query, k=num_tools)
         tools = [list(self.tools.values())[ind] for ind in inds]
 
         tool_info = "\n".join(str(tool) for tool in tools)
@@ -52,7 +62,9 @@ class MLXToolCallingAgent(ToolCallingAgentBase):
         else:
             prompt = "\n".join(f"{m['role']}: {m['content']}" for m in messages)
 
-        content = self.generate(self.model, self.tokenizer, prompt=prompt, verbose=False, max_tokens=750)
+        content = self.generate(
+            self.model, self.tokenizer, prompt=prompt, verbose=False, max_tokens=750
+        )
 
         if show_completion:
             console = Console()
@@ -67,6 +79,4 @@ class MLXToolCallingAgent(ToolCallingAgentBase):
             return ExecutionResults(
                 content=content, results={}, data={}, errors=[], is_dry=True
             )
-        return execute_tool_call(
-            completion=content, functions=[t.func for t in tools]
-        )
+        return execute_tool_call(completion=content, functions=[t.func for t in tools])

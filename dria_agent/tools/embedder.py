@@ -1,7 +1,7 @@
 import numpy as np
 from abc import ABC, abstractmethod
 from typing import Union, List
-from agent.clients.api import embed
+from dria_agent.agent.clients.api import embed
 from .tool import ToolCall
 
 
@@ -35,6 +35,7 @@ class OllamaEmbedding(BaseEmbedding):
         text = "Represent this sentence for searching relevant passages: " + text
         results = self.ollama.embed(model=self.model_name, input=text)
         return np.array(results.embeddings, dtype=np.float16)
+
 
 class HuggingFaceEmbedding(BaseEmbedding):
     def __init__(self, dim: int = 768, model_name="Snowflake/snowflake-arctic-embed-m"):

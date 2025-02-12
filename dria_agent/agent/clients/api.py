@@ -1,5 +1,5 @@
 from openai import OpenAI
-from agent.settings.providers import PROVIDER_URLS
+from dria_agent.agent.settings.providers import PROVIDER_URLS
 from typing import List, Dict
 
 

@@ -1,4 +1,4 @@
-from tools.tool import tool
+from dria_agent.tools.tool import tool
 
 try:
     import numpy as np

@@ -1,17 +1,14 @@
 from typing import List
 import logging
 
-from agent.clients.base import ToolCallingAgentBase
-from agent.settings.providers import PROVIDER_URLS
-from agent.clients.hfc import HuggingfaceToolCallingAgent
-from agent.clients.ollmc import OllamaToolCallingAgent
-from agent.clients.mlxc import MLXToolCallingAgent
-from agent.clients.apic import ApiToolCallingAgent
-from pythonic.schemas import ExecutionResults
-from tools.embedder import (
-    OllamaEmbedding,
-    HuggingFaceEmbedding
-)
+from dria_agent.agent.clients.base import ToolCallingAgentBase
+from dria_agent.agent.settings.providers import PROVIDER_URLS
+from dria_agent.agent.clients.hfc import HuggingfaceToolCallingAgent
+from dria_agent.agent.clients.ollmc import OllamaToolCallingAgent
+from dria_agent.agent.clients.mlxc import MLXToolCallingAgent
+from dria_agent.agent.clients.apic import ApiToolCallingAgent
+from dria_agent.pythonic.schemas import ExecutionResults
+from dria_agent.tools.embedder import OllamaEmbedding, HuggingFaceEmbedding
 from .checkers import check_and_install_ollama
 from rich.logging import RichHandler
 
@@ -31,8 +28,8 @@ class ToolCallingAgent(object):
     def __init__(self, agent):
         self.agent: ToolCallingAgentBase = agent
 
-    def run(self, query: str, dry_run=False, show_completion=True) -> ExecutionResults:
-        return self.agent.run(query, dry_run=dry_run, show_completion=show_completion)
+    def run(self, query: str, dry_run=False, show_completion=True, num_tools=2) -> ExecutionResults:
+        return self.agent.run(query, dry_run=dry_run, show_completion=show_completion, num_tools=num_tools)
 
 
 class ToolCallingAgentFactory:

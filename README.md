@@ -1,5 +1,24 @@
 # tiny-agent-α
 
+
+### Installation
+```bash
+pip install dria_agent
+```
+To use MLX as backend
+```bash
+pip install 'dria_agent[mlx]'
+```
+For HuggingFace backend
+```bash
+pip install 'dria_agent[huggingface]'
+```
+
+In order to use extra tooling select a backend (e.g. mlx) and run:
+```bash
+pip install 'dria_agent[mlx, tools]'
+```
+
 a fast and powerful tool calling model designed to run on edge devices.
 
 3B 8bit high performance and quality [download](https://huggingface.co/driaforall/Tiny-Agent-a-3B/resolve/main/dria-agent-a-3b.Q8_0.gguf?download=true)

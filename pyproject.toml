@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "dria-agent"
+name = "dria_agent"
 version = "0.1.0"
 description = "speedy, performant and small tool calling agents"
 authors = ["andthattoo <omer@firstbatch.xyz>"]
@@ -15,12 +15,15 @@ mlx-lm = {version = "^0.21.4", optional = true}
 openai = "^1.61.1"
 rich = "^13.9.4"
 scikit-learn = {version = "^1.6.1", optional = true}
+google-auth-oauthlib = {version = "^1.2.1", optional = true}
+google-api-python-client = {version = "^2.160.0", optional = true}
+docker = {version = "^7.1.0", optional = true}
 
 [tool.poetry.extras]
 huggingface = ["transformers", "sentence-transformers"]
 ollama = ["ollama"]
 mlx = ["mlx-lm"]
-math_tools = ["scikit-learn"]
+tools = ["scikit-learn", "docker", "google-api-python-client", "google-auth-oauthlib", "docker"]
 
 [build-system]
 requires = ["poetry-core"]

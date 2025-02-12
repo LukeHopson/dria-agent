@@ -2,10 +2,10 @@ from typing import List, Union, Dict
 import logging
 
 from transformers import AutoModelForCausalLM, AutoTokenizer
-from agent.settings.prompt import system_prompt
+from dria_agent.agent.settings.prompt import system_prompt
 from .base import ToolCallingAgentBase
-from pythonic.schemas import ExecutionResults
-from pythonic.engine import execute_tool_call
+from dria_agent.pythonic.schemas import ExecutionResults
+from dria_agent.pythonic.engine import execute_tool_call
 from rich.console import Console
 from rich.panel import Panel
 
@@ -27,8 +27,18 @@ class HuggingfaceToolCallingAgent(ToolCallingAgentBase):
         self.top_p = 0.95
 
     def run(
-        self, query: Union[str, List[Dict]], dry_run=False, show_completion=True
+        self,
+        query: Union[str, List[Dict]],
+        dry_run=False,
+        show_completion=True,
+        num_tools=2,
     ) -> ExecutionResults:
+
+        if num_tools <= 0 and num_tools > 3:
+            raise RuntimeError(
+                "Number of tools cannot be less than 0 or greater than 3 for optimal performance"
+            )
+
         messages = (
             [{"role": "user", "content": query}]
             if isinstance(query, str)

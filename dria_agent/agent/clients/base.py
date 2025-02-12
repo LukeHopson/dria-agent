@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import List, Union, Dict
-from pythonic.engine import ExecutionResults
-from tools.vdb import ToolDB
+from dria_agent.pythonic.engine import ExecutionResults
+from dria_agent.tools.vdb import ToolDB
 
 
 class ToolCallingAgentBase(ABC):
@@ -20,7 +20,11 @@ class ToolCallingAgentBase(ABC):
 
     @abstractmethod
     def run(
-        self, query: Union[str, List[Dict]], dry_run=False, show_completion=True
+        self,
+        query: Union[str, List[Dict]],
+        dry_run=False,
+        show_completion=True,
+        num_tools=3,
     ) -> ExecutionResults:
         """
         Performs an inference given a query string or a list of message dicts.
