@@ -34,7 +34,7 @@ class ExecutionResults(BaseModel):
 
     def final_answer(self):
         if self.is_dry:
-            return self.content
+            return "*Dry run has not yet executed anything.*"
         if not self.data or (len(self.data) == 1 and "re" in self.data):
             raise ValueError("No final value")
         return list(self.data.values())[-1]

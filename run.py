@@ -2,10 +2,10 @@ from agent import ToolCallingAgentFactory
 from tools.tool import tool
 from rich.console import Console
 from rich.panel import Panel
-from tools.library.math_tools import ALL_TOOLS
+from tools.library.math_tools import MATH_TOOLS
 
 # Create an inference engine with the available tool(s).
-agent = ToolCallingAgentFactory.create(tools=ALL_TOOLS, backend="mlx")
+agent = ToolCallingAgentFactory.create(tools=MATH_TOOLS, backend="mlx")
 
 console = Console()
 # --- Example 1: Using a query string ---

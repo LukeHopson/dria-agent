@@ -173,7 +173,7 @@ def simpson_integration(f: callable, a: float, b: float, n: int) -> float:
     return total * h / 3
 
 
-ALL_TOOLS = [
+MATH_TOOLS = [
     compute_pca,
     eigen_decomposition,
     linear_regression_predict,

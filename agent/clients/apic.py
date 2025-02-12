@@ -30,8 +30,11 @@ class ApiToolCallingAgent(ToolCallingAgentBase):
         else:
             messages = query.copy()
 
+        inds = self.db.nearest(query, k=2)
+        tools = [list(self.tools.values())[ind] for ind in inds]
+
         # Create a system message listing the available tools.
-        tool_info = "\n".join(str(tool) for tool in self.tools.values())
+        tool_info = "\n".join(str(tool) for tool in tools)
         system_message = {
             "role": "system",
             "content": system_prompt.replace("{{functions_schema}}", tool_info),
@@ -59,5 +62,5 @@ class ApiToolCallingAgent(ToolCallingAgentBase):
             )
         else:
             return execute_tool_call(
-                completion=content, functions=[t.func for t in self.tools.values()]
+                completion=content, functions=[t.func for t in tools]
             )
