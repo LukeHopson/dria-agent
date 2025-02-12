@@ -1,22 +1,27 @@
 from abc import ABC, abstractmethod
 from typing import List, Union, Dict
-from prompt import system_prompt
 from pythonic.engine import ExecutionResults
+from tools.vdb import ToolDB
 
 
 class ToolCallingAgentBase(ABC):
 
-    def __init__(self, tools: List, model: str):
+    def __init__(self, embedding, tools: List, model: str):
         """
         :param tools: A list of tool objects. Each tool should have a .name attribute and be callable.
         :param model: The name of the model to use for chat inference.
         """
         # Build a mapping from tool names to tool objects.
         self.tools = {tool.name: tool for tool in tools}
+        self.db = ToolDB(embedding=embedding)
+        schemas = [str(tool) for name, tool in self.tools.items()]
+        self.db.add(schemas)
         self.model = model
 
     @abstractmethod
-    def run(self, query: Union[str, List[Dict]], dry_run=False) -> ExecutionResults:
+    def run(
+        self, query: Union[str, List[Dict]], dry_run=False, show_completion=True
+    ) -> ExecutionResults:
         """
         Performs an inference given a query string or a list of message dicts.
 

@@ -1,15 +1,14 @@
-import json
-from typing import List, Union, Dict
-from ollama import chat, ChatResponse
-from .prompt import system_prompt
-from .base import ToolCallingAgentBase
+from agent.settings.prompt import system_prompt
+from agent.clients.base import ToolCallingAgentBase
 from pythonic.schemas import ExecutionResults
 from pythonic.engine import execute_tool_call
+from typing import List, Union, Dict
 
 
-class ToolCallingAgent(ToolCallingAgentBase):
-    def __init__(self, tools: List, model: str = "dria-agent-a-3b:q8_0"):
+class ApiToolCallingAgent(ToolCallingAgentBase):
+    def __init__(self, tools: List, model: str = "", provider=""):
         super().__init__(tools, model)
+        self.provider = provider
 
     def run(self, query: Union[str, List[Dict]], dry_run=False) -> ExecutionResults:
         """

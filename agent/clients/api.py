@@ -1,5 +1,7 @@
 from openai import OpenAI
 from agent.settings.providers import PROVIDER_URLS
+from typing import List
+
 
 # Initialize OpenAI clients for each provider
 CLIENTS = {}
@@ -26,7 +28,6 @@ def get_completion(
     if not client:
         raise ValueError(f"Provider '{provider}' not recognized.")
 
-
     messages = [
         {"role": "system", "content": system_prompt},
         {"role": "user", "content": user_query},
@@ -40,3 +41,20 @@ def get_completion(
             model=model_name, messages=messages, temperature=0.0
         )
     return response.choices[0].message.content
+
+
+def embed(
+    model_name: str, provider: str, texts: List[str], options: dict = None
+) -> List[List[float]]:
+    """
+    Get an embedding for the given text using a specified model and provider.
+    """
+    client = CLIENTS.get(provider)
+    if not client:
+        raise ValueError(f"Provider '{provider}' not recognized.")
+
+    if options:
+        response = client.embeddings.create(model=model_name, input=texts, **options)
+    else:
+        response = client.embeddings.create(model=model_name, input=texts)
+    return [d.embedding for d in response.data]

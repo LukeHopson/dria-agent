@@ -8,16 +8,17 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.12"
-smolagents = "^1.8.0"
-vllm = {version = "^0.7.2", optional = true}
 sentence-transformers = {version = "^3.4.1", optional = true}
 transformers = {version = "^4.48.3", optional = true}
 ollama = {version = "^0.4.7", optional = true}
+mlx-lm = {version = "^0.21.4", optional = true}
+openai = "^1.61.1"
+rich = "^13.9.4"
 
 [tool.poetry.extras]
-vllm = ["vllm"]
 huggingface = ["transformers", "sentence-transformers"]
 ollama = ["ollama"]
+mlx = ["mlx-lm"]
 
 [build-system]
 requires = ["poetry-core"]

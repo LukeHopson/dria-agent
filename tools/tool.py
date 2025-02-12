@@ -1,4 +1,7 @@
 import inspect
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class ToolCall:
@@ -6,6 +9,10 @@ class ToolCall:
         self.func = func
         self.name = func.__name__
         self.docstring = func.__doc__ or ""
+        if self.docstring == "":
+            logger.info(
+                "No docstring provided, please add detailed docstrings for effective tool calling."
+            )
         self.signature = inspect.signature(func)
 
         # Extract parameters information.
@@ -92,3 +99,9 @@ if __name__ == "__main__":
         return "09:00"
 
     print(find_next_available_slot)
+
+    @tool
+    def sum(x, y) -> int:
+        return x + y
+
+    print(sum)

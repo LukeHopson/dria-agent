@@ -3,3 +3,4 @@ poetry.lock
 ./idea
 .env
 dist
+app.log
