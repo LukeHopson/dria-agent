@@ -1,6 +1,6 @@
 from openai import OpenAI
 from agent.settings.providers import PROVIDER_URLS
-from typing import List
+from typing import List, Dict
 
 
 # Initialize OpenAI clients for each provider
@@ -10,7 +10,7 @@ for provider, (url, api_key) in PROVIDER_URLS.items():
 
 
 def get_completion(
-    model_name: str, provider: str, system_prompt: str, user_query: str, options=None
+    model_name: str, provider: str, messages: List[Dict[str, str]], options=None
 ) -> str:
     """
     Get a completion from a model for a given provider.
@@ -28,10 +28,6 @@ def get_completion(
     if not client:
         raise ValueError(f"Provider '{provider}' not recognized.")
 
-    messages = [
-        {"role": "system", "content": system_prompt},
-        {"role": "user", "content": user_query},
-    ]
     if options:
         response = client.chat.completions.create(
             model=model_name, messages=messages, **options

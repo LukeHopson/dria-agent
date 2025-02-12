@@ -5,6 +5,7 @@ from pythonic.engine import execute_tool_call
 from typing import List, Union, Dict
 from rich.console import Console
 from rich.panel import Panel
+from .api import get_completion
 
 class ApiToolCallingAgent(ToolCallingAgentBase):
     def __init__(self, embedding, tools: List, model: str = "", **kwargs):
@@ -38,10 +39,10 @@ class ApiToolCallingAgent(ToolCallingAgentBase):
         messages.insert(0, system_message)
 
         # Make the initial call to the chat model.
-        response: ChatResponse = chat(
-            model=self.model, messages=messages, options={"temperature": 0.0}
+        response = get_completion(
+            model_name=self.model, provider=self.provider, messages=messages, options={"temperature": 0.0}
         )
-        content = response.message.content
+        content = response
 
         if show_completion:
             console = Console()
