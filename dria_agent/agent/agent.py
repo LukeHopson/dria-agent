@@ -11,6 +11,8 @@ from dria_agent.pythonic.schemas import ExecutionResults
 from dria_agent.tools.embedder import OllamaEmbedding, HuggingFaceEmbedding
 from .checkers import check_and_install_ollama
 from rich.logging import RichHandler
+from rich.panel import Panel
+from rich.console import Console
 
 console_handler = RichHandler(rich_tracebacks=True)
 file_handler = logging.FileHandler("app.log")
@@ -28,8 +30,18 @@ class ToolCallingAgent(object):
     def __init__(self, agent):
         self.agent: ToolCallingAgentBase = agent
 
-    def run(self, query: str, dry_run=False, show_completion=True, num_tools=2) -> ExecutionResults:
-        return self.agent.run(query, dry_run=dry_run, show_completion=show_completion, num_tools=num_tools)
+    def run(self, query: str, dry_run=False, show_completion=True, num_tools=2, print_results=True) -> ExecutionResults:
+        execution = self.agent.run(query, dry_run=dry_run, show_completion=show_completion, num_tools=num_tools)
+        if print_results:
+            console = Console()
+            panel = Panel(
+                query,
+                title="Execution Result",
+                subtitle=str(execution.final_answer()),
+                expand=False,
+            )
+            console.print(panel)
+        return execution
 
 
 class ToolCallingAgentFactory:

@@ -1,7 +1,5 @@
 from dria_agent.agent import ToolCallingAgentFactory
 from dria_agent.tools.tool import tool
-from rich.panel import Panel
-from rich.console import Console
 
 
 @tool
@@ -64,17 +62,9 @@ def add_to_reminders(reminder_text: str) -> bool:
     return True
 
 
-console = Console()
 agent = ToolCallingAgentFactory.create(
     tools=[add_to_reminders, check_availability, make_appointment]
 )
 
 query = "Schedule a meeting with my thesis supervisor today from 15:00 to 16:00 and add it to my reminders."
-execution = agent.run(query, num_tools=3)
-panel = Panel(
-    query,
-    title="Execution Result",
-    subtitle=str(execution.final_answer()),
-    expand=False,
-)
-console.print(panel)
+execution = agent.run(query, num_tools=3, print_results=True)
