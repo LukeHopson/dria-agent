@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 class OllamaToolCallingAgent(ToolCallingAgentBase):
-    def __init__(self, embedding, tools: List, model: str = "dria-agent-a-3b:q8_0"):
+    def __init__(self, embedding, tools: List, model: str = "driaforall/tiny-agent-a:3b-q8_0"):
         super().__init__(embedding, tools, model)
         if importlib.util.find_spec("ollama") is None:
             raise ImportError(

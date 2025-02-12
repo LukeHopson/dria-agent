@@ -8,7 +8,7 @@ from rich.panel import Panel
 from .api import get_completion
 
 class ApiToolCallingAgent(ToolCallingAgentBase):
-    def __init__(self, embedding, tools: List, model: str = "", **kwargs):
+    def __init__(self, embedding, tools: List, model: str = "driaforall/Tiny-Agent-a-3B", **kwargs):
         super().__init__(embedding, tools, model)
         self.provider = kwargs["provider"]
 
