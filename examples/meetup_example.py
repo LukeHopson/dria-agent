@@ -1,4 +1,4 @@
-from dria_agent.agent import ToolCallingAgentFactory
+from dria_agent.agent import ToolCallingAgent
 from dria_agent.tools.tool import tool
 
 
@@ -62,7 +62,7 @@ def add_to_reminders(reminder_text: str) -> bool:
     return True
 
 
-agent = ToolCallingAgentFactory.create(
+agent = ToolCallingAgent(
     tools=[add_to_reminders, check_availability, make_appointment]
 )
 

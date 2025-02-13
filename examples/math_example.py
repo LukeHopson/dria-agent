@@ -1,8 +1,8 @@
-from dria_agent.agent import ToolCallingAgentFactory
+from dria_agent.agent import ToolCallingAgent
 from dria_agent.tools import MATH_TOOLS
 
 # Create an inference engine with the available tool(s).
-agent = ToolCallingAgentFactory.create(tools=MATH_TOOLS, backend="mlx")
+agent = ToolCallingAgent(tools=MATH_TOOLS, backend="mlx")
 
 
 # --- Example 1: Simple tool usage ---

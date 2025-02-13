@@ -1,4 +1,4 @@
-from dria_agent.agent import ToolCallingAgentFactory
+from dria_agent.agent import ToolCallingAgent
 from dria_agent.tools.tool import tool
 import requests
 from datetime import datetime, timedelta
@@ -109,7 +109,7 @@ def convert_currency(amount: float, from_currency: str, to_currency: str) -> dic
 
 
 # Create an inference engine with the exchange rate tools
-agent = ToolCallingAgentFactory.create(
+agent = ToolCallingAgent(
     tools=[get_exchange_rate, convert_currency],
     backend="ollama"
 )

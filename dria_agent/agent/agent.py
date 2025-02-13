@@ -27,43 +27,6 @@ logging.getLogger("httpx").setLevel(logging.WARNING)
 
 
 class ToolCallingAgent(object):
-    def __init__(self, agent):
-        self.agent: ToolCallingAgentBase = agent
-
-    def run(
-        self,
-        query: str,
-        dry_run=False,
-        show_completion=True,
-        num_tools=2,
-        print_results=True,
-    ) -> ExecutionResults:
-        execution = self.agent.run(
-            query, dry_run=dry_run, show_completion=show_completion, num_tools=num_tools
-        )
-        if print_results:
-            console = Console()
-            panel = Panel(
-                query,
-                title="Execution Result",
-                subtitle=str(execution.final_answer()),
-                expand=True,
-            )
-            console.print(panel)
-
-            if execution.errors:
-                panel = Panel(
-                    str(execution.errors),
-                    title="Errors",
-                    expand=True,
-                    style="on red"
-                )
-                console.print(panel)
-
-        return execution
-
-
-class ToolCallingAgentFactory:
     BACKENDS = {
         "huggingface": HuggingfaceToolCallingAgent,
         "mlx": MLXToolCallingAgent,
@@ -143,16 +106,15 @@ class ToolCallingAgentFactory:
         "Snowflake/snowflake-arctic-embed-l": 1024,
     }
 
-    @classmethod
-    def create(
-        cls,
+    def __init__(
+        self,
         tools: List,
         backend: str = "ollama",
         mode: Literal["ultra_light", "fast", "balanced", "performant"] = "performant",
         **kwargs,
     ):
-        agent_cls = cls.BACKENDS.get(backend)
-        embedding_cls = cls.EMBEDDING_MAP.get(backend)
+        agent_cls = self.BACKENDS.get(backend)
+        embedding_cls = self.EMBEDDING_MAP.get(backend)
         if not agent_cls or not embedding_cls:
             raise ValueError(f"Unknown agent type: {backend}")
         if backend == "api":
@@ -166,15 +128,45 @@ class ToolCallingAgentFactory:
             if provider == "ollama":
                 embedding_cls = OllamaEmbedding
 
-        model_pairs = cls.MODE_MAP[mode][backend]
+        model_pairs = self.MODE_MAP[mode][backend]
         if backend == "ollama":
             check_and_install_ollama(model_pairs[0], model_pairs[1])
 
-        return ToolCallingAgent(
-            agent=agent_cls(
-                model=model_pairs[0],
-                embedding=embedding_cls(model_name=model_pairs[1]),
-                tools=tools,
-                **kwargs,
-            )
+        self.agent = agent_cls(
+            model=model_pairs[0],
+            embedding=embedding_cls(model_name=model_pairs[1]),
+            tools=tools,
+            **kwargs,
         )
+
+    def run(
+        self,
+        query: str,
+        dry_run=False,
+        show_completion=True,
+        num_tools=2,
+        print_results=True,
+    ) -> ExecutionResults:
+        execution = self.agent.run(
+            query, dry_run=dry_run, show_completion=show_completion, num_tools=num_tools
+        )
+        if print_results:
+            console = Console()
+            panel = Panel(
+                query,
+                title="Execution Result",
+                subtitle=str(execution.final_answer()),
+                expand=True,
+            )
+            console.print(panel)
+
+            if execution.errors:
+                panel = Panel(
+                    str(execution.errors),
+                    title="Errors",
+                    expand=True,
+                    style="on red"
+                )
+                console.print(panel)
+
+        return execution
