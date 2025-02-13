@@ -29,7 +29,7 @@ def create_container(image: str, name: str = None, ports: dict = None) -> dict:
     :param ports: Port mapping dictionary
     :return: Container information
     """
-    client = docker.from_client()
+    client = docker.client.from_env()
     container = client.containers.run(image, name=name, ports=ports, detach=True)
     return {"id": container.id, "name": container.name}
 
@@ -42,7 +42,7 @@ def stop_container(container_id: str) -> bool:
     :param container_id: Container ID or name
     :return: True if successful
     """
-    client = docker.from_client()
+    client = docker.client.from_env()
     container = client.containers.get(container_id)
     container.stop()
     return True
@@ -57,7 +57,7 @@ def remove_container(container_id: str, force: bool = False) -> bool:
     :param force: Force remove running container
     :return: True if successful
     """
-    client = docker.from_client()
+    client = docker.client.from_env()
     container = client.containers.get(container_id)
     container.remove(force=force)
     return True
@@ -70,7 +70,7 @@ def list_images() -> list:
 
     :return: List of image information
     """
-    client = docker.from_client()
+    client = docker.client.from_env()
     images = client.images.list()
     return [{"id": img.id, "tags": img.tags} for img in images]
 
@@ -84,7 +84,7 @@ def pull_image(image_name: str, tag: str = "latest") -> dict:
     :param tag: Image tag
     :return: Image information
     """
-    client = docker.from_client()
+    client = docker.client.from_env()
     image = client.images.pull(f"{image_name}:{tag}")
     return {"id": image.id, "tags": image.tags}
 
@@ -98,7 +98,7 @@ def get_container_logs(container_id: str, tail: int = 100) -> str:
     :param tail: Number of lines to return from the end
     :return: Container logs
     """
-    client = docker.from_client()
+    client = docker.client.from_env()
     container = client.containers.get(container_id)
     return container.logs(tail=tail).decode("utf-8")
 
@@ -111,7 +111,7 @@ def inspect_container(container_id: str) -> dict:
     :param container_id: Container ID or name
     :return: Detailed container information
     """
-    client = docker.from_client()
+    client = docker.client.from_env()
     container = client.containers.get(container_id)
     return container.attrs
 
@@ -125,7 +125,7 @@ def create_network(name: str, driver: str = "bridge") -> dict:
     :param driver: Network driver
     :return: Network information
     """
-    client = docker.from_client()
+    client = docker.client.from_env()
     network = client.networks.create(name, driver=driver)
     return {"id": network.id, "name": network.name}
 

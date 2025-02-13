@@ -36,5 +36,5 @@ class ExecutionResults(BaseModel):
         if self.is_dry:
             return "*Dry run has not yet executed anything.*"
         if not self.data or (len(self.data) == 1 and "re" in self.data):
-            raise ValueError("No final value")
+            return None
         return list(self.data.values())[-1]

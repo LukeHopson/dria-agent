@@ -47,9 +47,19 @@ class ToolCallingAgent(object):
                 query,
                 title="Execution Result",
                 subtitle=str(execution.final_answer()),
-                expand=False,
+                expand=True,
             )
             console.print(panel)
+
+            if execution.errors:
+                panel = Panel(
+                    str(execution.errors),
+                    title="Errors",
+                    expand=True,
+                    style="on red"
+                )
+                console.print(panel)
+
         return execution
 
 
