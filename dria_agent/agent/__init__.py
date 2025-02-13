@@ -1,1 +1,1 @@
-from .agent import ToolCallingAgent, ToolCallingAgentFactory
+from .agent import ToolCallingAgent
