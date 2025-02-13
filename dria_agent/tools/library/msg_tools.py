@@ -18,13 +18,13 @@ try:
     from slack_sdk import WebClient
     from slack_sdk.errors import SlackApiError
 except ImportError:
-    raise ImportError("Please install 'slack_sdk'")
+    raise ImportError("Please run pip install 'dria_agent[tools]'")
 
 # Telegram
 try:
     import telegram
 except ImportError:
-    raise ImportError("Please install 'python-telegram-bot'")
+    raise ImportError("Please run pip install 'dria_agent[tools]'")
 
 
 # Gmail Tools

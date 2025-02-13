@@ -229,3 +229,14 @@ def search_wikipedia(query: str) -> str:
 
     except requests.exceptions.RequestException as e:
         return f"Error fetching Wikipedia data: {str(e)}"
+
+
+API_TOOLS = [
+    search_wikipedia,
+    get_random_fact,
+    get_time_in_timezone,
+    get_joke,
+    get_news_headlines,
+    convert_currency,
+    get_weather,
+]
