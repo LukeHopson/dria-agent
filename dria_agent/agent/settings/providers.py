@@ -9,5 +9,5 @@ PROVIDER_URLS = {
     "lm_studio": (LM_STUDIO_URL, "api_key"),
     "ollama": (OLLAMA_URL, "api_key"),
     "vllm": (VLLM_URL, "api_key"),
-    "litellm": (LITELLM_URL, "api_key")
+    "litellm": (LITELLM_URL, "api_key"),
 }

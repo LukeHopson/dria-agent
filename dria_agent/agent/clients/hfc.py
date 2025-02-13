@@ -29,8 +29,8 @@ class HuggingfaceToolCallingAgent(ToolCallingAgentBase):
             from transformers import AutoModelForCausalLM, AutoTokenizer
         self.tokenizer = AutoTokenizer.from_pretrained(tokenizer)
         self.model = AutoModelForCausalLM.from_pretrained(model)
-        self.temperature = 0.1
-        self.top_p = 0.95
+        self.temperature = 0.5
+        self.min_p = 0.95
 
     def run(
         self,
@@ -62,10 +62,10 @@ class HuggingfaceToolCallingAgent(ToolCallingAgentBase):
         inputs = self.tokenizer(prompt, return_tensors="pt")
         outputs = self.model.generate(
             **inputs,
-            max_new_tokens=200,
+            max_new_tokens=1024,
             do_sample=True,
             temperature=self.temperature,
-            top_p=self.top_p,
+            min_p=self.min_p,
         )
         content = self.tokenizer.decode(outputs[0], skip_special_tokens=True)[
             len(prompt) :

@@ -22,10 +22,11 @@ numpy = "^2.2.2"
 urllib3 = "^2.3.0"
 litellm = "^1.61.1"
 requests = "^2.32.3"
+mlx = {version = "^0.22.1", optional = true}
 
 [tool.poetry.extras]
 huggingface = ["transformers", "sentence-transformers"]
-mlx = ["mlx-lm"]
+mlx = ["mlx", "mlx-lm", "sentence-transformers"]
 tools = ["scikit-learn", "docker", "google-api-python-client", "google-auth-oauthlib", "docker"]
 
 [build-system]

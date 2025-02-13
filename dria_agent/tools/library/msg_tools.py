@@ -11,9 +11,7 @@ try:
     from email.mime.text import MIMEText
     import base64
 except ImportError:
-    raise ImportError(
-        "Please run pip install 'dria_agent[tools]'"
-    )
+    raise ImportError("Please run pip install 'dria_agent[tools]'")
 
 # Slack
 try:

@@ -6,12 +6,17 @@ class OpenAICompatible:
     def __init__(self):
         # Initialize OpenAI clients for each provider
         from openai import OpenAI
+
         self.CLIENTS = {}
         for provider, (url, api_key) in PROVIDER_URLS.items():
             self.CLIENTS[provider] = OpenAI(api_key=api_key, base_url=url)
 
     def get_completion(
-        self, model_name: str, provider: str, messages: List[Dict[str, str]], options=None
+        self,
+        model_name: str,
+        provider: str,
+        messages: List[Dict[str, str]],
+        options=None,
     ) -> str:
         """
         Get a completion from a model for a given provider.
@@ -39,7 +44,6 @@ class OpenAICompatible:
             )
         return response.choices[0].message.content
 
-
     def embed(
         self, model_name: str, provider: str, texts: List[str], options: dict = None
     ) -> List[List[float]]:
@@ -51,7 +55,9 @@ class OpenAICompatible:
             raise ValueError(f"Provider '{provider}' not recognized.")
 
         if options:
-            response = client.embeddings.create(model=model_name, input=texts, **options)
+            response = client.embeddings.create(
+                model=model_name, input=texts, **options
+            )
         else:
             response = client.embeddings.create(model=model_name, input=texts)
         return [d.embedding for d in response.data]

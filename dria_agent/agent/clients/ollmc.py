@@ -64,7 +64,9 @@ class OllamaToolCallingAgent(ToolCallingAgentBase):
 
         # Make the initial call to the chat model.
         response = self.chat(
-            model=self.model, messages=messages, options={"temperature": 0.5}
+            model=self.model,
+            messages=messages,
+            options={"temperature": 0.5, "min_p": 0.9},
         )
         content = response.message.content
 
