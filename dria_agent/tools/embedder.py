@@ -1,7 +1,6 @@
 import numpy as np
 from abc import ABC, abstractmethod
 from typing import Union, List
-from dria_agent.agent.clients.api import embed
 from .tool import ToolCall
 
 

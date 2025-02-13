@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Literal
 import logging
 
 from dria_agent.agent.clients.base import ToolCallingAgentBase
@@ -59,8 +59,47 @@ class ToolCallingAgentFactory:
         "api": HuggingFaceEmbedding,
     }
 
+    MODE_MAP = {
+        "fast": {
+            "ollama": ["driaforall/tiny-agent-a:1.5b", "snowflake-arctic-embed:s"],
+            "huggingface": ["driaforall/Tiny-Agent-a-3B", "Snowflake/snowflake-arctic-embed-m"],
+            "mlx": ["driaforall/Tiny-Agent-a-1.5B-Q8-mlx", "Snowflake/snowflake-arctic-embed-s"],
+            "api": ["driaforall/Tiny-Agent-a-3B", "Snowflake/snowflake-arctic-embed-m"],
+        },
+        "balanced": {
+            "ollama": ["driaforall/tiny-agent-a:3b-q4_K_M", "snowflake-arctic-embed:m"],
+            "huggingface": ["driaforall/Tiny-Agent-a-3B", "Snowflake/snowflake-arctic-embed-m"],
+            "mlx": ["driaforall/Tiny-Agent-a-1.5B-Q8-mlx", "Snowflake/snowflake-arctic-embed-m"],
+            "api": ["driaforall/Tiny-Agent-a-3B", "Snowflake/snowflake-arctic-embed-m"],
+        },
+        "performant": {
+            "ollama": ["driaforall/tiny-agent-a:3b", "snowflake-arctic-embed:m"],
+            "huggingface": ["driaforall/Tiny-Agent-a-3B", "Snowflake/snowflake-arctic-embed-l"],
+            "mlx": ["driaforall/Tiny-Agent-a-3B-Q8-mlx", "Snowflake/snowflake-arctic-embed-m"],
+            "api": ["driaforall/Tiny-Agent-a-3B", "Snowflake/snowflake-arctic-embed-l"],
+        },
+        "ultra_light": {
+            "ollama": ["driaforall/tiny-agent-a:0.5b", "snowflake-arctic-embed:xs"],
+            "huggingface": ["driaforall/Tiny-Agent-a-0.5B", "Snowflake/snowflake-arctic-embed-xs"],
+            "mlx": ["driaforall/Tiny-Agent-a-0.5B-Q8-mlx", "Snowflake/snowflake-arctic-embed-xs"],
+            "api": ["driaforall/Tiny-Agent-a-0.5B", "Snowflake/snowflake-arctic-embed-xs"],
+        }
+    }
+
+    embedding_dims = {
+        "snowflake-arctic-embed:xs": 384,
+        "snowflake-arctic-embed:s": 384,
+        "snowflake-arctic-embed:m": 768,
+        "snowflake-arctic-embed-l": 1024,
+        "Snowflake/snowflake-arctic-embed-xs": 384,
+        "Snowflake/snowflake-arctic-embed-s": 384,
+        "Snowflake/snowflake-arctic-embed-m": 768,
+        "Snowflake/snowflake-arctic-embed-l": 1024,
+    }
+
     @classmethod
-    def create(cls, tools: List, backend: str = "ollama", **kwargs):
+    def create(cls, tools: List, backend: str = "ollama",
+               mode: Literal["ultra_light", "fast", "balanced", "performant"] = "performant", **kwargs):
         agent_cls = cls.BACKENDS.get(backend)
         embedding_cls = cls.EMBEDDING_MAP.get(backend)
         if not agent_cls or not embedding_cls:
@@ -76,9 +115,10 @@ class ToolCallingAgentFactory:
             if provider == "ollama":
                 embedding_cls = OllamaEmbedding
 
+        model_pairs = cls.MODE_MAP[mode][backend]
         if backend == "ollama":
-            check_and_install_ollama()
+            check_and_install_ollama(model_pairs[0], model_pairs[1])
 
         return ToolCallingAgent(
-            agent=agent_cls(embedding=embedding_cls(), tools=tools, **kwargs)
+            agent=agent_cls(model=model_pairs[0], embedding=embedding_cls(model_name=model_pairs[1]), tools=tools, **kwargs)
         )

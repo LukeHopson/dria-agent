@@ -6,7 +6,7 @@ try:
     from sklearn.linear_model import LinearRegression
     from sklearn.svm import SVC
 except ImportError:
-    raise ImportError("Please install 'dria-agents[math_tools]")
+    raise ImportError("Please run pip install 'dria_agent[tools]'")
 
 
 @tool

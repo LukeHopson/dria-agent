@@ -12,7 +12,7 @@ try:
     import base64
 except ImportError:
     raise ImportError(
-        "Please install 'google-auth-oauthlib' and 'google-api-python-client'"
+        "Please run pip install 'dria_agent[tools]'"
     )
 
 # Slack

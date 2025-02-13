@@ -4,12 +4,13 @@ import platform
 import logging
 import tempfile
 import urllib3 as urllib
+import requests
 import os
 
 logger = logging.getLogger(__name__)
 
 
-def check_and_install_ollama():
+def check_and_install_ollama(agent, embedding):
     """
     Check if the 'ollama' CLI is installed, and if not, install it based on the OS:
       - macOS: install via Homebrew.
@@ -18,6 +19,14 @@ def check_and_install_ollama():
     """
     if shutil.which("ollama") is not None:
         logger.info("Ollama CLI is already installed.")
+
+        for model in [agent, embedding]:
+            r = requests.post("http://localhost:11434/api/show", json={"model": model})
+            if not r.ok:
+                logger.info("Downloading %s...", model)
+                subprocess.run(["ollama", "pull", model])
+            else:
+                logger.info("%s already exists.", model)
         return
 
     os_type = platform.system()

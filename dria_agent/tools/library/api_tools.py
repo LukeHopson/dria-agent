@@ -1,3 +1,7 @@
+# Copyright (c) [2025] [huggingface/smolagents]
+# Licensed under the MIT License
+# Source: [https://github.com/huggingface/smolagents/blob/cfe599c54a81412ea334e1f9d1f17189772428ef/examples/multiple_tools.py]
+
 from dria_agent.tools.tool import tool
 from typing import Optional
 import requests

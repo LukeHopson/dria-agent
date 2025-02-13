@@ -5,7 +5,7 @@ from dria_agent.pythonic.engine import execute_tool_call
 from typing import List, Union, Dict
 from rich.console import Console
 from rich.panel import Panel
-from .api import get_completion
+from .api import OpenAICompatible
 
 
 class ApiToolCallingAgent(ToolCallingAgentBase):
@@ -18,6 +18,7 @@ class ApiToolCallingAgent(ToolCallingAgentBase):
     ):
         super().__init__(embedding, tools, model)
         self.provider = kwargs["provider"]
+        self.client = OpenAICompatible()
 
     def run(
         self,
@@ -57,7 +58,7 @@ class ApiToolCallingAgent(ToolCallingAgentBase):
         messages.insert(0, system_message)
 
         # Make the initial call to the chat model.
-        response = get_completion(
+        response = self.client.get_completion(
             model_name=self.model,
             provider=self.provider,
             messages=messages,
