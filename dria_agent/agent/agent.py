@@ -1,17 +1,11 @@
 from typing import List, Literal
 import logging
 
-from dria_agent.agent.clients.base import ToolCallingAgentBase
 from dria_agent.agent.settings.providers import PROVIDER_URLS
-from dria_agent.agent.clients.hfc import HuggingfaceToolCallingAgent
-from dria_agent.agent.clients.ollmc import OllamaToolCallingAgent
-from dria_agent.agent.clients.mlxc import MLXToolCallingAgent
-from dria_agent.agent.clients.apic import ApiToolCallingAgent
 from dria_agent.pythonic.schemas import ExecutionResults
-from dria_agent.tools.embedder import OllamaEmbedding, HuggingFaceEmbedding
+from .utils import *
 from .checkers import check_and_install_ollama
 from rich.logging import RichHandler
-from rich.panel import Panel
 from rich.console import Console
 
 console_handler = RichHandler(rich_tracebacks=True)
@@ -152,21 +146,10 @@ class ToolCallingAgent(object):
         )
         if print_results:
             console = Console()
-            panel = Panel(
-                query,
-                title="Execution Result",
-                subtitle=str(execution.final_answer()),
-                expand=True,
-            )
-            console.print(panel)
+            console.print(create_panel("Query", query, "End of Query"))
+            console.print(create_panel(title="Execution Result", content=str(execution.final_answer())))
 
             if execution.errors:
-                panel = Panel(
-                    str(execution.errors),
-                    title="Errors",
-                    expand=True,
-                    style="on red"
-                )
-                console.print(panel)
+                console.print(create_panel(title="Errors", content=str(execution.errors)))
 
         return execution

@@ -62,9 +62,7 @@ def add_to_reminders(reminder_text: str) -> bool:
     return True
 
 
-agent = ToolCallingAgent(
-    tools=[add_to_reminders, check_availability, make_appointment]
-)
+agent = ToolCallingAgent(tools=[add_to_reminders, check_availability, make_appointment])
 
 query = "Schedule a meeting with my thesis supervisor today from 15:00 to 16:00 and add it to my reminders."
 execution = agent.run(query, num_tools=3, print_results=True)

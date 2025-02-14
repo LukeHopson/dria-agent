@@ -15,16 +15,19 @@ from urllib.parse import quote_plus
 from typing import Literal
 
 
+calendar_app = "Calendar"
+
 @tool
 def create_event(
-    title: str,
-    start_date: datetime.datetime,
-    end_date: datetime.datetime,
-    location: str = "",
-    invitees: list[str] = [],
-    notes: str = "",
-    calendar: str | None = None,
+        title: str,
+        start_date: datetime.datetime,
+        end_date: datetime.datetime,
+        location: str = "",
+        invitees: list[str] = [],
+        notes: str = "",
+        calendar: str | None = None,
 ) -> str:
+
     """
         Creates a new calendar event on macOS using AppleScript.
 
@@ -48,13 +51,13 @@ def create_event(
     if platform.system() != "Darwin":
         return "This method is only supported on MacOS"
 
-    applescript_start_date = start_date.strftime("%B %d, %Y %I:%M:%S %p")
-    applescript_end_date = end_date.strftime("%B %d, %Y %I:%M:%S %p")
+    #start_date = start_date.strftime("%-d/%-m/%Y %I:%M:%S %p")
+    #end_date = end_date.strftime("%-d/%-m/%Y %I:%M:%S %p")
 
     # Check if the given calendar parameter is valid
     if calendar is not None:
         script = f"""
-        tell application "{"Calender"}"
+        tell application "{calendar_app}"
             set calendarExists to name of calendars contains "{calendar}"
         end tell
         """
@@ -64,7 +67,7 @@ def create_event(
             if calendar is None:
                 return f"Can't find the calendar named {calendar}. Please try again and specify a valid calendar name."
 
-    # If it is not provded, default to the first calendar
+    # If it is not provided, default to the first calendar
     elif calendar is None:
         calendar = _get_first_calendar()
         if calendar is None:
@@ -81,25 +84,38 @@ def create_event(
 
     script = f"""
     tell application "System Events"
-        set calendarIsRunning to (name of processes) contains Calender
+        set calendarIsRunning to (name of processes) contains "{calendar_app}"
         if calendarIsRunning then
-            tell application Calender to activate
+            tell application "{calendar_app}" to activate
         else
-            tell application Calender to launch
+            tell application "{calendar_app}" to launch
             delay 1
-            tell application Calender to activate
+            tell application "{calendar_app}" to activate
         end if
     end tell
-    tell application Calender
+    tell application "{calendar_app}"
         tell calendar "{calendar}"
-            set startDate to date "{applescript_start_date}"
-            set endDate to date "{applescript_end_date}"
+            set startDate to current date
+            set year of startDate to {start_date.year}
+            set month of startDate to {start_date.month}
+            set day of startDate to {start_date.day}
+            set hours of startDate to {start_date.hour}
+            set minutes of startDate to {start_date.minute}
+            set seconds of startDate to {start_date.second}
+            
+            set endDate to current date
+            set year of endDate to {end_date.year}
+            set month of endDate to {end_date.month}
+            set day of endDate to {end_date.day}
+            set hours of endDate to {end_date.hour}
+            set minutes of endDate to {end_date.minute}
+            set seconds of endDate to {end_date.second}
             set theEvent to make new event at end with properties {{summary:"{title}", start date:startDate, end date:endDate, location:"{location}", description:"{notes}"}}
             {invitees_script}
             switch view to day view
             show theEvent
         end tell
-        tell application Calender to reload calendars
+        tell application "{calendar_app}" to reload calendars
     end tell
     """
 
@@ -113,13 +129,13 @@ def create_event(
 def _get_first_calendar() -> str | None:
     script = f"""
         tell application "System Events"
-            set calendarIsRunning to (name of processes) contains Calender
+            set calendarIsRunning to (name of processes) contains "{calendar_app}"
             if calendarIsRunning is false then
-                tell application Calender to launch
+                tell application "{calendar_app}" to launch
                 delay 1
             end if
         end tell
-        tell application Calender
+        tell application "{calendar_app}"
             set firstCalendarName to name of first calendar
         end tell
         return firstCalendarName
