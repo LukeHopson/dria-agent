@@ -128,7 +128,7 @@ class ToolCallingAgent(object):
 
         self.agent = agent_cls(
             model=model_pairs[0],
-            embedding=embedding_cls(model_name=model_pairs[1]),
+            embedding=embedding_cls(model_name=model_pairs[1], dim=self.embedding_dims[model_pairs[1]]),
             tools=tools,
             **kwargs,
         )
@@ -152,4 +152,34 @@ class ToolCallingAgent(object):
             if execution.errors:
                 console.print(create_panel(title="Errors", content=str(execution.errors)))
 
+        return execution
+
+    def run_loop(self, query: str, show_completion=True, num_tools=2, print_results=True):
+
+        execution = self.agent.run(
+            query, dry_run=False, show_completion=show_completion, num_tools=num_tools
+        )
+        if print_results:
+            console = Console()
+            console.print(create_panel("Query", query, "End of Query"))
+            console.print(create_panel(title="Execution Result", content=str(execution.final_answer())))
+
+            if execution.errors:
+                console.print(create_panel(title="Errors", content=str(execution.errors)))
+
+        history = [
+            {"role": "user", "content": query},
+        ]
+        while execution.errors:
+            history.append({"role": "user", "content": f"Please rethink your code and fix erros. You got the following errors: {str(execution.errors)}"})
+            execution = self.agent.run(
+                query, dry_run=False, show_completion=show_completion, num_tools=num_tools
+            )
+            if print_results:
+                console = Console()
+                console.print(create_panel("Query", query, "End of Query"))
+                console.print(create_panel(title="Execution Result", content=str(execution.final_answer())))
+
+                if execution.errors:
+                    console.print(create_panel(title="Errors", content=str(execution.errors)))
         return execution

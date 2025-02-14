@@ -1,7 +1,7 @@
 import numpy as np
 from abc import ABC, abstractmethod
 from typing import Union, List
-from .tool import ToolCall
+from dria_agent.tools.tool import ToolCall
 
 
 class BaseEmbedding(ABC):

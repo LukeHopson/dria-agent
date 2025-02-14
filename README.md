@@ -2,14 +2,16 @@
 
 
 ### Installation
+
+To install the package run: (Best for CPU inference)
 ```bash
 pip install dria_agent
 ```
-To use MLX as backend
+To use MLX as backend for macOS. 
 ```bash
 pip install 'dria_agent[mlx]'
 ```
-For HuggingFace backend
+For HuggingFace backend for GPU.
 ```bash
 pip install 'dria_agent[huggingface]'
 ```

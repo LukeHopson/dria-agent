@@ -140,7 +140,8 @@ class MLXToolCallingAgent(ToolCallingAgentBase):
             else query.copy()
         )
 
-        inds = self.db.nearest(query, k=num_tools)
+        search_query = messages[0]["content"]
+        inds = self.db.nearest(search_query, k=num_tools)
         tools = [list(self.tools.values())[ind] for ind in inds]
 
         tool_info = "\n".join(str(tool) for tool in tools)

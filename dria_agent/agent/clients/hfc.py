@@ -50,7 +50,12 @@ class HuggingfaceToolCallingAgent(ToolCallingAgentBase):
             if isinstance(query, str)
             else query.copy()
         )
-        tool_info = "\n".join(str(tool) for tool in self.tools.values())
+
+        search_query = messages[0]["content"]
+        inds = self.db.nearest(search_query, k=num_tools)
+        tools = [list(self.tools.values())[ind] for ind in inds]
+
+        tool_info = "\n".join(str(tool) for tool in tools)
         system_message = {
             "role": "system",
             "content": system_prompt.replace("{{functions_schema}}", tool_info),
@@ -85,5 +90,5 @@ class HuggingfaceToolCallingAgent(ToolCallingAgentBase):
                 content=content, results={}, data={}, errors=[], is_dry=True
             )
         return execute_tool_call(
-            completion=content, functions=[t.func for t in self.tools.values()]
+            completion=content, functions=[t.func for t in tools]
         )

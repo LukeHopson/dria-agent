@@ -16,6 +16,7 @@ from typing import Literal
 
 
 calendar_app = "Calendar"
+messages_app = "Messages"
 
 @tool
 def create_event(
@@ -261,5 +262,162 @@ def show_directions(end: str, start: str = "", transport: Literal["d", "w", "r"]
     webbrowser.open(full_url)
     return f"Directions to {end} in Apple Maps: {full_url}"
 
+@tool
+def send_sms(to: list[str], message: str) -> str:
+    """
+    Compose an SMS draft in the macOS Messages app by simulating keystrokes.
 
-APPLE_TOOLS = [create_event, open_anything, open_location, show_directions]
+    This method opens the Messages app, creates a new SMS draft, and fills in the recipient(s)
+    and message text by simulating keyboard input. It does not send the SMS automatically.
+    Note: This functionality is only supported on macOS.
+
+    :param to: A list of recipient phone numbers or email addresses.
+    :type to: list[str]
+    :param message: The message content to include in the SMS draft.
+    :type message: str
+    :returns: A confirmation message indicating that the SMS draft was composed,
+              or an error message if the operation failed.
+    """
+    if platform.system() != "Darwin":
+        return "This method is only supported on MacOS"
+
+    to_script = []
+    for recipient in to:
+        recipient = recipient.replace("\n", "")
+        to_script.append(
+            f"""
+            keystroke "{recipient}"
+            delay 0.5
+            keystroke return
+            delay 0.5
+        """
+        )
+    to_script = "".join(to_script)
+
+    escaped_message = message.replace('"', '\\"').replace("'", "’")
+
+    script = f"""
+    tell application "System Events"
+        tell application "{messages_app}"
+            activate
+        end tell
+        tell process "{messages_app}"
+            set frontmost to true
+            delay 0.5
+            keystroke "n" using command down
+            delay 0.5
+            {to_script}
+            keystroke tab
+            delay 0.5
+            keystroke "{escaped_message}"
+        end tell
+    end tell
+    """
+    try:
+        run_applescript(script)
+        return "SMS draft composed"
+    except subprocess.CalledProcessError as e:
+        return f"An error occurred while composing the SMS: {str(e)}"
+
+@tool
+def get_phone_number(contact_name: str) -> str:
+    """
+    Retrieves the phone number of a contact from the macOS Contacts app.
+
+    This function uses AppleScript to locate a contact by the provided name and returns
+    the phone number of the first matching person. If an exact match is not found, it
+    attempts to locate similar contacts by using the first name and recursively returns
+    the phone number of the first similar contact found. This method is supported only on macOS.
+
+    :param contact_name: The full name of the contact whose phone number is to be retrieved.
+    :type contact_name: str
+    :returns: The phone number of the contact, or an error message if no matching contact is found.
+    """
+    if platform.system() != "Darwin":
+        return "This method is only supported on MacOS"
+
+    script = f"""
+    tell application "Contacts"
+        set thePerson to first person whose name is "{contact_name}"
+        set theNumber to value of first phone of thePerson
+        return theNumber
+    end tell
+    """
+    stout, stderr = run_applescript_capture(script)
+    # If the person is not found, try to find similar contacts
+    if "Can’t get person" in stderr:
+        first_name = contact_name.split(" ")[0]
+        names = get_full_names_from_first_name(first_name)
+        if "No contacts found" in names or len(names) == 0:
+            return "No contacts found"
+        else:
+            # Return the phone number of the first similar contact
+            return get_phone_number(names[0])
+    else:
+        return stout.replace("\n", "")
+
+@tool
+def get_email_address(contact_name: str) -> str:
+    """
+    Retrieves the email address of a contact from the macOS Contacts app.
+
+    This function uses AppleScript to search for a contact by name and returns the email
+    address of the first matching person. If an exact match is not found, it attempts to
+    find similar contacts by searching for contacts with the same first name and returns
+    the email address of the first found. This method is only supported on macOS.
+
+    :param contact_name: The full name of the contact to search for.
+    :returns: The email address of the contact or an error message if no matching contact is found.
+    """
+    if platform.system() != "Darwin":
+        return "This method is only supported on MacOS"
+
+    script = f"""
+    tell application "Contacts"
+        set thePerson to first person whose name is "{contact_name}"
+        set theEmail to value of first email of thePerson
+        return theEmail
+    end tell
+    """
+    stout, stderr = run_applescript_capture(script)
+    # If the person is not found, we will try to find similar contacts
+    if "Can’t get person" in stderr:
+        first_name = contact_name.split(" ")[0]
+        names = get_full_names_from_first_name(first_name)
+        if "No contacts found" in names or len(names) == 0:
+            return "No contacts found"
+        else:
+            # Just find the first person
+            return get_email_address(names[0])
+    else:
+        return stout.replace("\n", "")
+
+
+def get_full_names_from_first_name(first_name: str) -> list[str] | str:
+    """
+    Returns a list of full names of contacts that contain the first name provided.
+    """
+    if platform.system() != "Darwin":
+        return "This method is only supported on MacOS"
+
+    script = f"""
+    tell application "Contacts"
+        set matchingPeople to every person whose first name contains "{first_name}"
+        set namesList to {{}}
+        repeat with aPerson in matchingPeople
+            set end of namesList to name of aPerson
+        end repeat
+        return namesList
+    end tell
+    """
+    names, _ = run_applescript_capture(script)
+    names = names.strip()
+    if len(names) > 0:
+        # Turn name into a list of strings
+        names = list(map(lambda n: n.strip(), names.split(",")))
+        return names
+    else:
+        return "No contacts found."
+
+
+APPLE_TOOLS = [create_event, open_anything, open_location, show_directions, send_sms, get_phone_number, get_email_address]

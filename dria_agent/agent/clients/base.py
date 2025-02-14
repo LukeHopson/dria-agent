@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import List, Union, Dict
 from dria_agent.pythonic.engine import ExecutionResults
-from dria_agent.tools.vdb import ToolDB
+from dria_agent.agent.vdb import ToolDB
 
 
 class ToolCallingAgentBase(ABC):

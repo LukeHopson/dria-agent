@@ -51,7 +51,8 @@ class OllamaToolCallingAgent(ToolCallingAgentBase):
         else:
             messages = query.copy()
 
-        inds = self.db.nearest(query, k=2)
+        search_query = messages[0]["content"]
+        inds = self.db.nearest(search_query, k=2)
         tools = [list(self.tools.values())[ind] for ind in inds]
 
         # Create a system message listing the available tools.

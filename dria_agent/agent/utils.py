@@ -2,7 +2,7 @@ from dria_agent.agent.clients.hfc import HuggingfaceToolCallingAgent
 from dria_agent.agent.clients.ollmc import OllamaToolCallingAgent
 from dria_agent.agent.clients.mlxc import MLXToolCallingAgent
 from dria_agent.agent.clients.apic import ApiToolCallingAgent
-from dria_agent.tools.embedder import OllamaEmbedding, HuggingFaceEmbedding
+from dria_agent.agent.embedder import OllamaEmbedding, HuggingFaceEmbedding
 from typing import Optional
 from rich.panel import Panel
 
