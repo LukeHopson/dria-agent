@@ -1,4 +1,4 @@
-from dria_agent.tools.tool import tool
+from dria_agent.agent.tool import tool
 
 try:
     import docker

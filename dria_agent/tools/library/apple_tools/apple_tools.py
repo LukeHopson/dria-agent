@@ -6,7 +6,7 @@
 import datetime
 import platform
 import subprocess
-from dria_agent.tools.tool import tool
+from dria_agent.agent.tool import tool
 from .cmd import run_applescript, run_applescript_capture, run_command
 import difflib
 import os

@@ -1,5 +1,4 @@
-from dria_agent.agent import ToolCallingAgent
-from dria_agent.tools.tool import tool
+from dria_agent import ToolCallingAgent, tool
 
 
 @tool
