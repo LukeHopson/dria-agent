@@ -6,7 +6,9 @@ from dria_agent.agent.tool import tool
 from typing import Optional
 import requests
 import os
+from dotenv import load_dotenv
 
+load_dotenv()
 
 @tool
 def get_weather(location: str, celsius: Optional[bool] = False) -> str:
@@ -102,7 +104,7 @@ def get_news_headlines() -> str:
         str: A string containing the top 5 news headlines and their sources, or an error message.
     """
     api_key = os.environ.get(
-        "newsapi_API_KEY", None
+        "NEWSAPI_API_KEY", None
     )  # Replace with your actual API key from https://newsapi.org/
     if not api_key:
         raise EnvironmentError("NewsAPI key not found.")

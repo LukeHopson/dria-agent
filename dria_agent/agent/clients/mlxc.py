@@ -129,7 +129,7 @@ class MLXToolCallingAgent(ToolCallingAgentBase):
         num_tools=2,
     ) -> ExecutionResults:
 
-        if num_tools <= 0 and num_tools > 3:
+        if num_tools <= 0 or num_tools > 5:
             raise RuntimeError(
                 "Number of tools cannot be less than 0 or greater than 3 for optimal performance"
             )

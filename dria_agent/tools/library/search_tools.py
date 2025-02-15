@@ -154,4 +154,4 @@ def visit_webpage(url: str) -> str:
         return f"An unexpected error occurred: {str(e)}"
 
 
-SEARCH_TOOLS = [duckduckgo_search, google_search, visit_webpage]
+SEARCH_TOOLS = [google_search, visit_webpage]

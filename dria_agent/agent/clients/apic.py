@@ -35,7 +35,7 @@ class ApiToolCallingAgent(ToolCallingAgentBase):
         :return: The final ExecutionResults
         """
 
-        if num_tools <= 0 and num_tools > 3:
+        if num_tools <= 0 or num_tools > 5:
             raise RuntimeError(
                 "Number of tools cannot be less than 0 or greater than 3 for optimal performance"
             )
@@ -47,7 +47,7 @@ class ApiToolCallingAgent(ToolCallingAgentBase):
             messages = query.copy()
 
         search_query = messages[0]["content"]
-        inds = self.db.nearest(search_query, k=2)
+        inds = self.db.nearest(search_query, k=num_tools)
         tools = [list(self.tools.values())[ind] for ind in inds]
 
         # Create a system message listing the available tools.

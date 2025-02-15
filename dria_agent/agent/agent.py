@@ -154,7 +154,7 @@ class ToolCallingAgent(object):
 
         return execution
 
-    def run_loop(self, query: str, show_completion=True, num_tools=2, print_results=True):
+    def run_feedback(self, query: str, show_completion=True, num_tools=2, print_results=True, max_iterations=5) -> ExecutionResults:
 
         execution = self.agent.run(
             query, dry_run=False, show_completion=show_completion, num_tools=num_tools
@@ -170,8 +170,10 @@ class ToolCallingAgent(object):
         history = [
             {"role": "user", "content": query},
         ]
+
+        iterations = 0
         while execution.errors:
-            history.append({"role": "user", "content": f"Please rethink your code and fix erros. You got the following errors: {str(execution.errors)}"})
+            history.append({"role": "user", "content": f"Please re-think your code and fix errors. You got the following errors: {str(execution.errors)}"})
             execution = self.agent.run(
                 query, dry_run=False, show_completion=show_completion, num_tools=num_tools
             )
@@ -182,4 +184,7 @@ class ToolCallingAgent(object):
 
                 if execution.errors:
                     console.print(create_panel(title="Errors", content=str(execution.errors)))
+            if iterations == max_iterations-1:
+                break
+            iterations += 1
         return execution
