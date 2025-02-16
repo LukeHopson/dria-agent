@@ -8,9 +8,7 @@ from dria_agent.tools import (
     APPLE_TOOLS,
     API_TOOLS,
     MATH_TOOLS,
-    GMAIL_TOOLS,
     SLACK_TOOLS,
-    TELEGRAM_TOOLS,
     DOCKER_TOOLS,
     SEARCH_TOOLS,
 )
@@ -47,9 +45,7 @@ def main():
         APPLE_TOOLS
         + API_TOOLS
         + MATH_TOOLS
-        + GMAIL_TOOLS
         + SLACK_TOOLS
-        + TELEGRAM_TOOLS
         + DOCKER_TOOLS
         + SEARCH_TOOLS
     )
