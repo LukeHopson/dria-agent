@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "dria_agent"
-version = "0.1.54"
+version = "0.1.55"
 description = "speedy, performant and small tool calling agents"
 authors = ["andthattoo <omer@firstbatch.xyz>"]
 license = "MIT"
@@ -15,8 +15,6 @@ mlx-lm = {version = "^0.21.4", optional = true}
 openai = "^1.61.1"
 rich = "^13.9.4"
 scikit-learn = {version = "^1.6.1", optional = true}
-google-auth-oauthlib = {version = "^1.2.1", optional = true}
-google-api-python-client = {version = "^2.160.0", optional = true}
 docker = {version = "^7.1.0", optional = true}
 numpy = "^2.2.2"
 urllib3 = "^2.3.0"
@@ -26,7 +24,6 @@ markdownify = {version = "^0.14.1", optional = true}
 duckduckgo-search = {version = "^7.3.2", optional = true}
 smolagents = {version = "^1.8.1", optional = true}
 slack-sdk = {version="^3.34.0", optional = true}
-python-telegram = {version="^0.19.0",optional = true}
 beautifulsoup4 = {version = "^4.13.3", optional = true}
 
 [tool.poetry.extras]

@@ -33,18 +33,30 @@ from dria_agent import tool
 
 @tool
 def check_availability(day: str, start_time: str, end_time: str) -> bool:
-    # Your implementation here
+    """
+    Checks if a given time slot is available.
+
+    :param day: The date in "YYYY-MM-DD" format.
+    :param start_time: The start time of the desired slot (HH:MM format, 24-hour).
+    :param end_time: The end time of the desired slot (HH:MM format, 24-hour).
+    :return: True if the slot is available, otherwise False.
+    """
+    # Mock implementation
+    if start_time == "12:00" and end_time == "13:00":
+        return False
     return True
+
 ````
 
 Create an agent:
 
 ```python
-from dria_agent import ToolCallingAgentFactory
+from dria_agent import ToolCallingAgent
 
-agent = ToolCallingAgentFactory(
-    tools=[check_availability], backend="ollama"
+agent = ToolCallingAgent(
+    tools=[check_availability]
 )
+
 ```
 
 #### Running Queries
@@ -52,9 +64,44 @@ agent = ToolCallingAgentFactory(
 Use agent.run(query) to execute tasks with tools.
 
 ```python
-query = "Check if I'm available on Monday from 10:00 to 11:00"
-execution = agent.run(query, print_results=True)
+execution = agent.run("Check my calendar for tomorrow noon", print_results=True)
 ```
+
+Tiny-Agent-3B outputs:
+
+````
+let me help you check your availability for a 1-hour meditation session       
+starting at noon tomorrow.                                                    
+                                                                                
+Step-by-step reasoning:                                                       
+ 1. We need to check availability for a specific time slot (noon)              
+ 2. The duration is 1 hour, so we'll use the same start and end times          
+ 3. Since it's tomorrow, we should format the date as "YYYY-MM-DD"             
+ 4. Use the check_availability() function with these parameters                
+                                                                                
+Here's the code to check your availability:                                   
+                                                                                
+```python                                                                     
+tomorrow = (datetime.now() + timedelta(days=1)).strftime("%Y-%m-%d")          
+start_time = "12:00"  # Noon in 24-hour format                                
+end_time = "13:00"   # One hour after noon                                    
+                                                                                
+availability = check_availability(tomorrow, start_time, end_time)             
+```                                                                           
+                                                                                
+The code will:                                                                
+- Calculate tomorrow's date using datetime and timedelta                      
+- Set the time slot to noon (12:00) for 1 hour duration                       
+- Check if this time slot is available using the check_availability function  
+                                                                                
+The availability variable will contain True if you're available, or False if  
+not.
+
+````
+
+#### Modes
+
+**run**
 
 - **query (str)**: The user query to process.
 - **dry_run (bool, default=False)**: If True, only performs inference—no tool execution.
@@ -63,6 +110,12 @@ execution = agent.run(query, print_results=True)
   - *Allows handling thousands of tools efficiently*.
   - * perform best with 4-5 tools max*.
 - **print_results (bool, default=True)**: Prints execution results.
+
+**run_feedback()**
+
+**CLI**
+
+
 
 
 ## Models

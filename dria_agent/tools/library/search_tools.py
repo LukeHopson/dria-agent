@@ -11,6 +11,9 @@ try:
     from requests.exceptions import RequestException
     from duckduckgo_search import DDGS
     from smolagents.utils import truncate_content
+    import dotenv
+
+    dotenv.load_dotenv()
 except ImportError:
     raise ImportError("Please run pip install 'dria_agent[tools]'")
 

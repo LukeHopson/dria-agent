@@ -6,5 +6,7 @@ agent = ToolCallingAgent(tools=DOCKER_TOOLS, backend="ollama")
 
 
 # --- Example 1: Simple tool usage ---
-query = "Stop all the running docker and show there are no running containers afterwards."
+query = (
+    "Stop all the running docker and show there are no running containers afterwards."
+)
 execution = agent.run_feedback(query, print_results=True)

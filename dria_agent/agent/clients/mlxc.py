@@ -140,7 +140,11 @@ class MLXToolCallingAgent(ToolCallingAgentBase):
             else query.copy()
         )
 
-        search_query = messages[0]["content"]
+        # Use the last three messages from user for search query.
+        # This is to keep a balance between context size and relevance.
+        search_query = [
+            message["content"] for message in messages if message["role"] == "user"
+        ][-1]
         inds = self.db.nearest(search_query, k=num_tools)
         tools = [list(self.tools.values())[ind] for ind in inds]
 

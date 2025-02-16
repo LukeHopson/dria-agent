@@ -1,4 +1,7 @@
+import io
 import sys
+from rich.console import Console
+from rich.panel import Panel
 import argparse
 from dria_agent import ToolCallingAgent
 from dria_agent.tools import (
@@ -14,13 +17,12 @@ from dria_agent.tools import (
 
 
 def chat_mode(agent):
-    print("Chat mode. Type 'exit' to quit.")
-    while True:
-        query = input("You: ").strip()
-        if query.lower() in ("exit", "quit"):
-            break
-        # Using run_feedback for interactive feedback
-        agent.run_feedback(query)
+    console = Console()
+    console.print(
+        "Chat mode. Type 'exit' to quit. Type 'clear' to clear the screen.",
+        style="bold green",
+    )
+    agent.run_chat()
 
 
 def main():

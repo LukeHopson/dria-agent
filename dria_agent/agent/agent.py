@@ -227,16 +227,17 @@ class ToolCallingAgent(object):
         return execution
 
     def run_chat(
-        self, show_completion=True, num_tools=2, print_results=True, max_iterations=3
+        self, show_completion=True, num_tools=3, print_results=True, max_iterations=1
     ) -> None:
         history = []
         console = Console()
-        print("Chat mode. Type 'exit' to quit.")
         while True:
-            user_input = input("You: ").strip()
+            user_input = input(": ").strip()
             if user_input.lower() in ("exit", "quit"):
                 break
             history.append({"role": "user", "content": user_input})
+            history = compress_history(history, threshold=3500)
+
             execution = self.agent.run(
                 copy.deepcopy(history),
                 dry_run=False,
@@ -271,3 +272,4 @@ class ToolCallingAgent(object):
                         console.print(create_panel("Errors", str(execution.errors)))
                 iterations += 1
             history.append({"role": "assistant", "content": execution.content})
+            history.append({"role": "tool", "content": str(execution.final_answer())})
