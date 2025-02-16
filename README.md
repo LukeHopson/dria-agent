@@ -1,6 +1,6 @@
 # Dria Agent
 
-Dria Agent is a lightweight pip package to use fastest and most performant models for function calling on edge devices, `tiny-agent-α`.
+A package to use the fastest and most performant tool calling agents on edge devices, `tiny-agent-α`.
 
 Tiny-Agent-α is an extension of [Dria-Agent-a](https://huggingface.co/collections/driaforall/dria-agent-a-67a61f4b7d3d544fe5d3cd8a=), trained on top of the Qwen2.5-Coder series to be used in edge devices. 
 These models are carefully fine-tuned with quantization aware training to minimize performance degradation after quantization. 
@@ -8,6 +8,20 @@ The smallest model is 0.5B with 4bit quantization (398MB on disk), and the large
 
 
 ### Features
+
+**One-shot Parallel Multiple Function Calls**
+
+The model can can utilise many synchronous processes in one chat turn to arrive to a solution, which would require other function calling models multiple turns of conversation.
+
+**Free-form Reasoning and Actions**
+
+The model provides reasoning traces freely in natural language and the actions in between ```python ``` blocks, as it already tends to do without special prompting or tuning. 
+
+**On-the-fly Complex Solution Generation**
+
+The solution provided by the model is essentially a Python program with the exclusion of some "risky" builtins like exec, eval and compile (see full list in Quickstart below). 
+
+#### Edge Device Optimized:
 - Supports mlx, ollama, and transformers (Hugging Face).
 - Includes built-in support for macOS, Gmail, search, and more.
 - Uses similarity search to efficiently select relevant tools.
