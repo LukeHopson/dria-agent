@@ -89,6 +89,4 @@ class HuggingfaceToolCallingAgent(ToolCallingAgentBase):
             return ExecutionResults(
                 content=content, results={}, data={}, errors=[], is_dry=True
             )
-        return execute_tool_call(
-            completion=content, functions=[t.func for t in tools]
-        )
+        return execute_tool_call(completion=content, functions=[t.func for t in tools])

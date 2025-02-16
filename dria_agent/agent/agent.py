@@ -1,6 +1,7 @@
 from typing import List, Literal
 import logging
 
+import copy
 from dria_agent.agent.settings.providers import PROVIDER_URLS
 from dria_agent.pythonic.schemas import ExecutionResults
 from .utils import *
@@ -128,7 +129,9 @@ class ToolCallingAgent(object):
 
         self.agent = agent_cls(
             model=model_pairs[0],
-            embedding=embedding_cls(model_name=model_pairs[1], dim=self.embedding_dims[model_pairs[1]]),
+            embedding=embedding_cls(
+                model_name=model_pairs[1], dim=self.embedding_dims[model_pairs[1]]
+            ),
             tools=tools,
             **kwargs,
         )
@@ -147,14 +150,27 @@ class ToolCallingAgent(object):
         if print_results:
             console = Console()
             console.print(create_panel("Query", query, "End of Query"))
-            console.print(create_panel(title="Execution Result", content=str(execution.final_answer())))
+            console.print(
+                create_panel(
+                    title="Execution Result", content=str(execution.final_answer())
+                )
+            )
 
             if execution.errors:
-                console.print(create_panel(title="Errors", content=str(execution.errors)))
+                console.print(
+                    create_panel(title="Errors", content=str(execution.errors))
+                )
 
         return execution
 
-    def run_feedback(self, query: str, show_completion=True, num_tools=2, print_results=True, max_iterations=5) -> ExecutionResults:
+    def run_feedback(
+        self,
+        query: str,
+        show_completion=True,
+        num_tools=2,
+        print_results=True,
+        max_iterations=3,
+    ) -> ExecutionResults:
 
         execution = self.agent.run(
             query, dry_run=False, show_completion=show_completion, num_tools=num_tools
@@ -162,10 +178,16 @@ class ToolCallingAgent(object):
         if print_results:
             console = Console()
             console.print(create_panel("Query", query, "End of Query"))
-            console.print(create_panel(title="Execution Result", content=str(execution.final_answer())))
+            console.print(
+                create_panel(
+                    title="Execution Result", content=str(execution.final_answer())
+                )
+            )
 
             if execution.errors:
-                console.print(create_panel(title="Errors", content=str(execution.errors)))
+                console.print(
+                    create_panel(title="Errors", content=str(execution.errors))
+                )
 
         history = [
             {"role": "user", "content": query},
@@ -173,18 +195,79 @@ class ToolCallingAgent(object):
 
         iterations = 0
         while execution.errors:
-            history.append({"role": "user", "content": f"Please re-think your code and fix errors. You got the following errors: {str(execution.errors)}"})
+            history.append({"role": "assistant", "content": execution.content})
+            history.append(
+                {
+                    "role": "user",
+                    "content": f"Please re-think your code and fix errors. You got the following errors: {str(execution.errors)}",
+                }
+            )
             execution = self.agent.run(
-                query, dry_run=False, show_completion=show_completion, num_tools=num_tools
+                copy.deepcopy(history),
+                dry_run=False,
+                show_completion=show_completion,
+                num_tools=num_tools,
             )
             if print_results:
                 console = Console()
                 console.print(create_panel("Query", query, "End of Query"))
-                console.print(create_panel(title="Execution Result", content=str(execution.final_answer())))
+                console.print(
+                    create_panel(
+                        title="Execution Result", content=str(execution.final_answer())
+                    )
+                )
 
                 if execution.errors:
-                    console.print(create_panel(title="Errors", content=str(execution.errors)))
-            if iterations == max_iterations-1:
+                    console.print(
+                        create_panel(title="Errors", content=str(execution.errors))
+                    )
+            if iterations == max_iterations - 1:
                 break
             iterations += 1
         return execution
+
+    def run_chat(
+        self, show_completion=True, num_tools=2, print_results=True, max_iterations=3
+    ) -> None:
+        history = []
+        console = Console()
+        print("Chat mode. Type 'exit' to quit.")
+        while True:
+            user_input = input("You: ").strip()
+            if user_input.lower() in ("exit", "quit"):
+                break
+            history.append({"role": "user", "content": user_input})
+            execution = self.agent.run(
+                copy.deepcopy(history),
+                dry_run=False,
+                show_completion=show_completion,
+                num_tools=num_tools,
+            )
+            if print_results:
+                console.print(create_panel("User Query", user_input, "End of Query"))
+                console.print(
+                    create_panel("Execution Result", str(execution.final_answer()))
+                )
+                if execution.errors:
+                    console.print(create_panel("Errors", str(execution.errors)))
+            iterations = 0
+            while execution.errors and iterations < max_iterations:
+                history.append({"role": "assistant", "content": execution.content})
+                feedback = f"Please re-think your response and fix errors. Errors: {execution.errors}"
+                history.append({"role": "user", "content": feedback})
+                execution = self.agent.run(
+                    copy.deepcopy(history),
+                    dry_run=False,
+                    show_completion=show_completion,
+                    num_tools=num_tools,
+                )
+                if print_results:
+                    console.print(
+                        create_panel(
+                            "Assistant Response", str(execution.final_answer())
+                        )
+                    )
+                    if execution.errors:
+                        console.print(create_panel("Errors", str(execution.errors)))
+                iterations += 1
+            history.append({"role": "assistant", "content": execution.content})

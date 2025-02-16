@@ -112,14 +112,14 @@ def convert_currency(amount: float, from_currency: str, to_currency: str) -> dic
 # Create an inference engine with the exchange rate tools
 agent = ToolCallingAgent(tools=[get_exchange_rate, convert_currency], backend="ollama")
 
-# Example 1: Get exchange rate
+# --- Example 1: Get exchange rate ---
 query = "What's the current exchange rate from USD to EUR?"
-execution = agent.run(query, print_results=True)
+execution = agent.run_feedback(query, print_results=True)
 
-# Example 2: Convert currency
+# --- Example 2: Convert currency ---
 query = "Convert 100 USD to JPY"
 execution = agent.run(query, print_results=True)
 
-# Example 3: Multiple conversions
+# --- Example 3: Multiple conversions ---
 query = "How much is 50 EUR in USD and GBP?"
 execution = agent.run(query, print_results=True)

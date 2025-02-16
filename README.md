@@ -7,14 +7,21 @@ These models are carefully fine-tuned with quantization aware training to minimi
 The smallest model is 0.5B with 4bit quantization (398MB on disk), and the largest model is 3B with 4bit quantization.
 
 
+### Features
+- Supports mlx, ollama, and transformers (Hugging Face).
+- Includes built-in support for macOS, Gmail, search, and more.
+- Uses similarity search to efficiently select relevant tools.
+- Optimized for Edge
+
+
 ### Installation
 
-To install the package run: (Best for CPU inference)
+To install the package run:
 ```bash
-pip install dria_agent
+pip install dria_agent # Best for CPU inference
 pip install 'dria_agent[mlx]' # To use MLX as backend for macOS. 
-pip install 'dria_agent[huggingface]' # For HuggingFace backend for GPU.
-pip install 'dria_agent[mlx, tools]' # In order to use extra tooling select a backend
+pip install 'dria_agent[huggingface]' # HuggingFace/transformers backend for GPU.
+pip install 'dria_agent[tools]' # In order to use factory tools in package
 ```
 
 ### Quick Start
@@ -40,6 +47,8 @@ agent = ToolCallingAgentFactory(
 )
 ```
 
+#### Running Queries
+
 Use agent.run(query) to execute tasks with tools.
 
 ```python
@@ -47,8 +56,19 @@ query = "Check if I'm available on Monday from 10:00 to 11:00"
 execution = agent.run(query, print_results=True)
 ```
 
+- **query (str)**: The user query to process.
+- **dry_run (bool, default=False)**: If True, only performs inference—no tool execution.
+- **show_completion (bool, default=True)**: Displays the model’s raw output before tool execution.
+- **num_tools (int, default=2)**: Selects the best K tools for inference (using similarity search).
+  - *Allows handling thousands of tools efficiently*.
+  - * perform best with 4-5 tools max*.
+- **print_results (bool, default=True)**: Prints execution results.
+
 
 ## Models
+
+A fast and powerful tool calling model designed to run on edge devices.
+
 
 | Model                  | Description                                | HF Download Link                                                                                                         | Ollama Tag                         | Size   |
 |------------------------|--------------------------------------------|--------------------------------------------------------------------------------------------------------------------------|-------------------------------------|--------|
@@ -58,17 +78,6 @@ execution = agent.run(query, print_results=True)
 | Tiny-Agent-a-1.5B (4bit) | Faster CPU inference, performance tradeoff | [Download](https://huggingface.co/driaforall/Tiny-Agent-a-1.5B/resolve/main/dria-agent-a-1.5b.Q8_0.gguf?download=true)   | driaforall/tiny-agent-a:1.5B-q4_K_M | 986 MB |
 | Tiny-Agent-a-0.5B (8bit) | Ultra-light                                | [Download](https://huggingface.co/driaforall/Tiny-Agent-a-1.5B/resolve/main/dria-agent-a-1.5b.Q4_K_M.gguf?download=true) | driaforall/tiny-agent-a:0.5B-q8_0 | 531 MB |
 
-a fast and powerful tool calling model designed to run on edge devices.
-
-3B 8bit high performance and quality [download](https://huggingface.co/driaforall/Tiny-Agent-a-3B/resolve/main/dria-agent-a-3b.Q8_0.gguf?download=true)
-
-3B 4bit balanced performance and speed [download](https://huggingface.co/driaforall/Tiny-Agent-a-3B/resolve/main/dria-agent-a-3b.Q4_K_M.gguf?download=true)
-
-1.5B 8bit fast CPU inference [download](https://huggingface.co/driaforall/Tiny-Agent-a-1.5B/resolve/main/dria-agent-a-1.5b.Q8_0.gguf?download=true)
-
-1.5B 4bit faster CPU inference [download](https://huggingface.co/driaforall/Tiny-Agent-a-1.5B/resolve/main/dria-agent-a-1.5b.Q8_0.gguf?download=true)
-
-0.5B 8bit ultra-light [download](https://huggingface.co/driaforall/Tiny-Agent-a-1.5B/resolve/main/dria-agent-a-1.5b.Q4_K_M.gguf?download=true)
 
 
 ## Evaluation & Performance

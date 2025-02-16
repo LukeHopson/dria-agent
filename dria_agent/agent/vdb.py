@@ -1,6 +1,7 @@
 """
 A simple, lightweight vector database for handling tools larger/longer than context size.
 """
+
 import numpy as np
 from .embedder import BaseEmbedding
 

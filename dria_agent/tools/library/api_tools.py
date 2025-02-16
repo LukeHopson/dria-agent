@@ -10,6 +10,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+
 @tool
 def get_weather(location: str, celsius: Optional[bool] = False) -> str:
     """

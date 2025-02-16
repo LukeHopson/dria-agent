@@ -20,17 +20,17 @@ messages_app = "Messages"
 notes_app = "Notes"
 _DEFAULT_FOLDER = "Notes"
 
+
 @tool
 def create_event(
-        title: str,
-        start_date: datetime.datetime,
-        end_date: datetime.datetime,
-        location: str = "",
-        invitees: list[str] = [],
-        notes: str = "",
-        calendar: str | None = None,
+    title: str,
+    start_date: datetime.datetime,
+    end_date: datetime.datetime,
+    location: str = "",
+    invitees: list[str] = [],
+    notes: str = "",
+    calendar: str | None = None,
 ) -> str:
-
     """
         Creates a new calendar event on macOS using AppleScript.
 
@@ -54,8 +54,8 @@ def create_event(
     if platform.system() != "Darwin":
         return "This method is only supported on MacOS"
 
-    #start_date = start_date.strftime("%-d/%-m/%Y %I:%M:%S %p")
-    #end_date = end_date.strftime("%-d/%-m/%Y %I:%M:%S %p")
+    # start_date = start_date.strftime("%-d/%-m/%Y %I:%M:%S %p")
+    # end_date = end_date.strftime("%-d/%-m/%Y %I:%M:%S %p")
 
     # Check if the given calendar parameter is valid
     if calendar is not None:
@@ -153,7 +153,7 @@ def _get_first_calendar() -> str | None:
 @tool
 def open_anything(name_or_path: str) -> str:
     """
-    Opens an item on macOS using Spotlight search.
+    Open a local file/folder/application on macOS using Spotlight.
 
     This function attempts to open an application, file, or folder by either directly opening the file
     if an absolute path is provided, or by using macOS's Spotlight search (via 'mdfind') to locate the item.
@@ -264,6 +264,7 @@ def show_directions(end: str, start: str = "", transport: Literal["d", "w", "r"]
     webbrowser.open(full_url)
     return f"Directions to {end} in Apple Maps: {full_url}"
 
+
 @tool
 def send_sms(to: list[str], message: str) -> str:
     """
@@ -321,6 +322,7 @@ def send_sms(to: list[str], message: str) -> str:
     except subprocess.CalledProcessError as e:
         return f"An error occurred while composing the SMS: {str(e)}"
 
+
 @tool
 def get_phone_number(contact_name: str) -> str:
     """
@@ -357,6 +359,7 @@ def get_phone_number(contact_name: str) -> str:
             return get_phone_number(names[0])
     else:
         return stout.replace("\n", "")
+
 
 @tool
 def get_email_address(contact_name: str) -> str:
@@ -421,6 +424,7 @@ def get_full_names_from_first_name(first_name: str) -> list[str] | str:
     else:
         return "No contacts found."
 
+
 @tool
 def create_note(name: str, content: str, folder: str | None = None) -> str:
     """
@@ -468,6 +472,8 @@ def create_note(name: str, content: str, folder: str | None = None) -> str:
         return "Note created and focused successfully."
     except subprocess.CalledProcessError as e:
         return str(e)
+
+
 @tool
 def open_note(
     name: str,
@@ -511,10 +517,7 @@ def open_note(
 
     try:
         stdout, _ = run_applescript_capture(script_direct_open)
-        if (
-            "Note opened successfully" in stdout
-            or "No exact match found" not in stdout
-        ):
+        if "Note opened successfully" in stdout or "No exact match found" not in stdout:
             if return_content:
                 return _convert_note_to_text(stdout.strip())
             return stdout.strip()  # Successfully opened a note with the exact name
@@ -542,10 +545,9 @@ def open_note(
     except subprocess.CalledProcessError as e:
         return f"Error: {str(e)}"
 
+
 @tool
-def append_to_note(
-    name: str, append_content: str, folder: str | None = None
-) -> str:
+def append_to_note(name: str, append_content: str, folder: str | None = None) -> str:
     """
     Append content to a note.
 
@@ -669,5 +671,15 @@ def _convert_note_to_text(note_html: str) -> str:
     return soup.get_text().strip()
 
 
-APPLE_TOOLS = [create_event, open_anything, open_location, show_directions,
-               send_sms, get_phone_number, get_email_address, create_note, open_note, append_to_note]
+APPLE_TOOLS = [
+    create_event,
+    open_anything,
+    open_location,
+    show_directions,
+    send_sms,
+    get_phone_number,
+    get_email_address,
+    create_note,
+    open_note,
+    append_to_note,
+]

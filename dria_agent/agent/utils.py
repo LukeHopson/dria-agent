@@ -75,7 +75,9 @@ MODE_MAP = {
 }
 
 
-def create_panel(title: str, content: str, subtitle: Optional[str]=None) -> Panel:
+def create_panel(title: str, content: str, subtitle: Optional[str] = None) -> Panel:
     if subtitle:
-        return Panel(content, title=title, subtitle=subtitle, border_style="blue", expand=True)
+        return Panel(
+            content, title=title, subtitle=subtitle, border_style="blue", expand=True
+        )
     return Panel(content, title=title, border_style="blue", expand=True)

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "dria_agent"
-version = "0.1.53"
+version = "0.1.54"
 description = "speedy, performant and small tool calling agents"
 authors = ["andthattoo <omer@firstbatch.xyz>"]
 license = "MIT"
@@ -27,11 +27,15 @@ duckduckgo-search = {version = "^7.3.2", optional = true}
 smolagents = {version = "^1.8.1", optional = true}
 slack-sdk = {version="^3.34.0", optional = true}
 python-telegram = {version="^0.19.0",optional = true}
+beautifulsoup4 = {version = "^4.13.3", optional = true}
 
 [tool.poetry.extras]
 huggingface = ["transformers", "sentence-transformers"]
 mlx = ["mlx", "mlx-lm", "sentence-transformers"]
-tools = ["slack-sdk", "python-telegram", "scikit-learn", "docker", "google-api-python-client", "google-auth-oauthlib", "docker", "markdownify", "duckduckgo-search", "smolagents"]
+tools = ["beautifulsoup4", "slack-sdk", "python-telegram", "scikit-learn", "docker", "google-api-python-client", "google-auth-oauthlib", "docker", "markdownify", "duckduckgo-search", "smolagents"]
+
+[tool.poetry.scripts]
+dria_agent = "dria_agent.__main__:main"
 
 [build-system]
 requires = ["poetry-core"]

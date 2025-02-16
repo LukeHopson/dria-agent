@@ -11,10 +11,14 @@ def list_containers(all: bool = False) -> list:
     """
     List Docker containers.
 
-    :param all: Include stopped containers if True
-    :return: List of container information
+    :param all: Include stopped containers if True.
+    :type all: bool
+    :return: A list of dictionaries, each containing container details:
+             - 'id' (str): The container's unique identifier.
+             - 'name' (str): The container's name.
+             - 'status' (str): The container's status.
     """
-    client = docker.from_client()
+    client = docker.client.from_env()
     containers = client.containers.list(all=all)
     return [{"id": c.id, "name": c.name, "status": c.status} for c in containers]
 
@@ -24,10 +28,13 @@ def create_container(image: str, name: str = None, ports: dict = None) -> dict:
     """
     Create a new Docker container.
 
-    :param image: Docker image name
-    :param name: Container name
-    :param ports: Port mapping dictionary
-    :return: Container information
+    :param image: The name of the Docker image to use.
+    :param name: Optional name for the container.
+    :param ports: A dictionary mapping container ports to host ports (e.g., {"80/tcp": 8080}).
+    :return: A dictionary containing container details:
+             - 'id' (str): The unique identifier of the created container.
+             - 'name' (str): The assigned name of the container.
+    :rtype: dict
     """
     client = docker.client.from_env()
     container = client.containers.run(image, name=name, ports=ports, detach=True)
@@ -39,8 +46,9 @@ def stop_container(container_id: str) -> bool:
     """
     Stop a Docker container.
 
-    :param container_id: Container ID or name
-    :return: True if successful
+    :param container_id: The ID or name of the container to stop.
+    :type container_id: str
+    :return: True if the container was successfully stopped.
     """
     client = docker.client.from_env()
     container = client.containers.get(container_id)
@@ -66,9 +74,11 @@ def remove_container(container_id: str, force: bool = False) -> bool:
 @tool
 def list_images() -> list:
     """
-    List Docker images.
+    List available Docker images.
 
-    :return: List of image information
+    :return: A list of dictionaries, each containing image details:
+             - 'id' (str): The unique identifier of the image.
+             - 'tags' (List[str]): A list of tags associated with the image.
     """
     client = docker.client.from_env()
     images = client.images.list()
@@ -78,11 +88,14 @@ def list_images() -> list:
 @tool
 def pull_image(image_name: str, tag: str = "latest") -> dict:
     """
-    Pull a Docker image.
+    Pull a Docker image from a registry.
 
-    :param image_name: Image name
-    :param tag: Image tag
-    :return: Image information
+    :param image_name: The name of the image to pull.
+    :type image_name: str
+    :param tag: The tag of the image to pull (default is "latest").
+    :return: A dictionary containing image details:
+             - 'id' (str): The unique identifier of the pulled image.
+             - 'tags' (List[str]): A list of tags associated with the image.
     """
     client = docker.client.from_env()
     image = client.images.pull(f"{image_name}:{tag}")
@@ -106,10 +119,11 @@ def get_container_logs(container_id: str, tail: int = 100) -> str:
 @tool
 def inspect_container(container_id: str) -> dict:
     """
-    Inspect a Docker container.
+    Inspect a Docker container and retrieve detailed information.
 
-    :param container_id: Container ID or name
-    :return: Detailed container information
+    :param container_id: The ID or name of the container to inspect.
+    :type container_id: str
+    :return: A dictionary containing detailed container information.
     """
     client = docker.client.from_env()
     container = client.containers.get(container_id)
@@ -121,9 +135,13 @@ def create_network(name: str, driver: str = "bridge") -> dict:
     """
     Create a Docker network.
 
-    :param name: Network name
-    :param driver: Network driver
-    :return: Network information
+    :param name: The name of the network to create.
+    :type name: str
+    :param driver: The network driver to use (default is "bridge").
+    :type driver: str, optional
+    :return: A dictionary containing network details:
+             - 'id' (str): The unique identifier of the created network.
+             - 'name' (str): The name of the created network.
     """
     client = docker.client.from_env()
     network = client.networks.create(name, driver=driver)

@@ -78,6 +78,7 @@ def execute_python_code(
     import_string = "from typing import List, Dict, Any, Union, Tuple, Callable"
     exec(import_string, env)
     exec("import re", env)
+    exec("from datetime import datetime, timedelta", env)
 
     # Execute the code and catch any exceptions
     errors = []
