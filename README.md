@@ -39,10 +39,10 @@ https://github.com/user-attachments/assets/5f7cbd26-7ba3-46aa-926f-4ac68de5ccb0
 
 To install the package run:
 ```bash
-pip install dria_agent # Best for CPU inference
+pip install dria_agent # Best for CPU inference, uses ollama
 pip install 'dria_agent[mlx]' # To use MLX as backend for macOS. 
 pip install 'dria_agent[huggingface]' # HuggingFace/transformers backend for GPU.
-pip install 'dria_agent[tools]' # In order to use factory tools in package
+pip install 'dria_agent[mlx, tools]' # In order to use factory tools in package, run with backend of your choice
 ```
 
 ### Quick Start
@@ -50,6 +50,13 @@ pip install 'dria_agent[tools]' # In order to use factory tools in package
 #### CLI Mode
 
 You can run the agent with pre-defined [tools](#tool-library) using the CLI. Agent will use all of the tools in the library.
+For CLI, you should install tools with backend of your choice
+
+```bash
+pip install 'dria_agent[ollama, tools]'
+```
+
+And then, run:
 
 ```bash
 dria_agent --chat  # for chat mode
