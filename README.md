@@ -56,6 +56,13 @@ dria_agent --chat  # for chat mode
 dria_agent Please solve 5x^2 + 8x + 9 = 0 and 4x^2 + 11x - 3 = 0 # for single query
 ```
 
+For help, `dria_agent --help`
+```
+dria_agent [-h] [--chat] [--backend {mlx,ollama,huggingface}]
+                  [--agent_mode {ultra_light,fast,balanced,performant}]
+                  [query ...]
+```
+
 #### Using your own tools
 
 Write your functions in pure python, decorate them with @tool to expose them to the agent.
@@ -99,6 +106,20 @@ execution = agent.run("Check my calendar for tomorrow noon", print_results=True)
 
 #### Run Modes
 
+Agent has 4 modes to choose from, depending on your needs:
+
+- **Ultra Light**: Fastest inference, uses the least amount of memory.
+- **Fast**: Faster inference, uses more memory.
+- **Balanced**: Balanced between speed and memory.
+- **Performant**: Best performance, uses the most memory.
+
+To initialize the agent with a specific mode:
+
+```python
+agent = ToolCallingAgent(tools=[my_tool], backend="ollama", mode="ultra_light")
+```
+---
+
 `agent.run()`
 
 - **query (str)**: The user query to process.
@@ -108,6 +129,8 @@ execution = agent.run("Check my calendar for tomorrow noon", print_results=True)
   - *Allows handling thousands of tools efficiently*.
   - * perform best with 4-5 tools max*.
 - **print_results (bool, default=True)**: Prints execution results.
+
+---
 
 `agent.run_feedback()`
 
