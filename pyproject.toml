@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "dria_agent"
-version = "0.1.56"
+version = "0.1.58"
 description = "speedy, performant and small tool calling agents"
 authors = ["andthattoo <omer@firstbatch.xyz>"]
 license = "MIT"

@@ -139,7 +139,25 @@ def inspect_container(container_id: str) -> dict:
     Inspect a Docker container and retrieve detailed information.
 
     :param container_id: The ID or name of the container to inspect.
-    :return: A dictionary containing detailed container information.
+    :return: A dictionary containing detailed container information. Dict has:
+        - Id: string
+        - Created: string ( ISO 8601 date)
+        - Path: string
+        - Args: list[string]
+        - State: dict
+        - Image: string
+        - ResolvConfPath: string
+        - HostnamePath: string
+        - HostsPath: string
+        - LogPath: string
+        - Name: string
+        - RestartCount: int
+        - Driver: string
+        - Platform: string
+        - MountLabel: string
+        - ProcessLabel: string
+        - AppArmorProfile: string
+        - HostConfig: dict
     """
     client = docker.client.from_env()
     container = client.containers.get(container_id)

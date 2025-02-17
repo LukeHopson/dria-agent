@@ -42,12 +42,7 @@ def main():
     args = parser.parse_args()
 
     all_tools = (
-        APPLE_TOOLS
-        + API_TOOLS
-        + MATH_TOOLS
-        + SLACK_TOOLS
-        + DOCKER_TOOLS
-        + SEARCH_TOOLS
+        APPLE_TOOLS + API_TOOLS + MATH_TOOLS + SLACK_TOOLS + DOCKER_TOOLS + SEARCH_TOOLS
     )
     agent = ToolCallingAgent(
         tools=all_tools, backend=args.backend, mode=args.agent_mode

@@ -51,9 +51,12 @@ class HuggingfaceToolCallingAgent(ToolCallingAgentBase):
             else query.copy()
         )
 
-        search_query = [
-            message["content"] for message in messages if message["role"] == "user"
-        ][-1]
+        user_msgs = [m["content"] for m in messages if m["role"] == "user"]
+        search_query = (
+            user_msgs[-2]
+            if "Please re-think your response and fix errors" in user_msgs[-1]
+            else user_msgs[-1]
+        )
         inds = self.db.nearest(search_query, k=num_tools)
         tools = [list(self.tools.values())[ind] for ind in inds]
 

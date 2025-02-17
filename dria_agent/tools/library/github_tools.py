@@ -1,11 +1,13 @@
 from dria_agent.agent.tool import tool
 from typing import List, Dict
+
 try:
     from github import Github
 except ImportError:
     raise ImportError("Please run pip install 'dria_agent[tools]'")
 
 import os
+
 
 def get_client():
     token = os.environ.get("GITHUB_TOKEN")
@@ -30,7 +32,9 @@ def list_repositories(user: str = None, org: str = None) -> List[Dict]:
         repos = client.get_user(user).get_repos()
     else:
         repos = client.get_user().get_repos()
-    return [{"name": r.name, "full_name": r.full_name, "private": r.private} for r in repos]
+    return [
+        {"name": r.name, "full_name": r.full_name, "private": r.private} for r in repos
+    ]
 
 
 @tool
@@ -80,7 +84,7 @@ def get_repository_info(full_name: str) -> dict:
         "private": repo.private,
         "stars": repo.stargazers_count,
         "forks": repo.forks_count,
-        "open_issues": repo.open_issues_count
+        "open_issues": repo.open_issues_count,
     }
 
 
@@ -132,7 +136,9 @@ def close_issue(full_name: str, issue_number: int) -> bool:
 
 
 @tool
-def merge_pull_request(full_name: str, pr_number: int, commit_message: str = None) -> dict:
+def merge_pull_request(
+    full_name: str, pr_number: int, commit_message: str = None
+) -> dict:
     """
     Merge a pull request in a repository.
 

@@ -5,5 +5,5 @@ from .library import (
     SEARCH_TOOLS,
     DOCKER_TOOLS,
     SLACK_TOOLS,
-    GITHUB_TOOLS
+    GITHUB_TOOLS,
 )
