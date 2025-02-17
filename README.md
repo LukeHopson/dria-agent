@@ -7,7 +7,7 @@ These models are carefully fine-tuned with quantization aware training to minimi
 The smallest model is 0.5B with 4bit quantization (398MB on disk), and the largest model is 3B with 4bit quantization.
 
 
-https://github.com/user-attachments/assets/c50b71f9-5d6e-4f67-8650-1ffbc2000575
+https://github.com/user-attachments/assets/909656ad-4924-435a-8b4d-ac1b6d664d9c
 
 
 ### Features
