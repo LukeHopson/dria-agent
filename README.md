@@ -7,6 +7,9 @@ These models are carefully fine-tuned with quantization aware training to minimi
 The smallest model is 0.5B with 4bit quantization (398MB on disk), and the largest model is 3B with 4bit quantization.
 
 
+https://github.com/user-attachments/assets/c50b71f9-5d6e-4f67-8650-1ffbc2000575
+
+
 ### Features
 
 **One-shot Parallel Multiple Function Calls**
@@ -20,6 +23,12 @@ The model provides reasoning traces freely in natural language and the actions i
 **On-the-fly Complex Solution Generation**
 
 The solution provided by the model is essentially a Python program with the exclusion of some "risky" builtins like exec, eval and compile (see full list in Quickstart below). 
+
+
+
+https://github.com/user-attachments/assets/5f7cbd26-7ba3-46aa-926f-4ac68de5ccb0
+
+
 
 #### Edge Device Optimized:
 - Supports mlx, ollama, and transformers (Hugging Face).
