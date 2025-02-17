@@ -2,7 +2,9 @@
 
 `tiny-agent-α` is a tiny model for building tool calling agents on edge devices.
 
-It's fast and veeeery good compared to it's size. See for yourself:
+It's fast and veeeery good compared to it's size.
+
+Demo:
 
 https://github.com/user-attachments/assets/909656ad-4924-435a-8b4d-ac1b6d664d9c
 
@@ -12,6 +14,8 @@ https://github.com/user-attachments/assets/909656ad-4924-435a-8b4d-ac1b6d664d9c
 Tiny-Agent-α is an extension of [Dria-Agent-a](https://huggingface.co/collections/driaforall/dria-agent-a-67a61f4b7d3d544fe5d3cd8a=), trained on top of the Qwen2.5-Coder series to be used in edge devices. 
 These models are carefully fine-tuned with quantization aware training to minimize performance degradation after quantization. 
 The smallest model is 0.5B with 4bit quantization (398MB on disk), and the largest model is 3B with 4bit quantization.
+
+It's good at:
 
 - **One-shot Parallel Multiple Function Calls**
 
@@ -45,10 +49,11 @@ pip install 'dria_agent[tools]' # In order to use factory tools in package
 
 #### CLI Mode
 
-You can run the agent with pre-defined tools using the CLI.
+You can run the agent with pre-defined [tools](#tool-library) using the CLI. Agent will use all of the tools in the library.
 
 ```bash
-dria-agent --chat
+dria_agent --chat  # for chat mode
+dria_agent Please solve 5x^2 + 8x + 9 = 0 and 4x^2 + 11x - 3 = 0 # for single query
 ```
 
 #### Using your own tools
