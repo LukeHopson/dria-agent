@@ -35,8 +35,7 @@ def create_mcp_tool_executor(
             required_params = tool_info.get("input_schema", {}).get("required", [])
             if not required_params:
                 raise ValueError(f"Given parameters undefined for tool {tool_name}")
-            if len(args) > len(required_params):
-                raise ValueError(f"Too many arguments provided for tool {tool_name}")
+            args = args[:len(required_params)]
             kwargs = {param: arg for param, arg in zip(required_params, args)}
         loop = asyncio.get_event_loop()
         return loop.run_until_complete(_execute(**kwargs))
