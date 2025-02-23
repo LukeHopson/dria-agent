@@ -1,8 +1,8 @@
-import io
-import sys
-from rich.console import Console
-from rich.panel import Panel
 import argparse
+import asyncio
+
+from rich.console import Console
+
 from dria_agent import ToolCallingAgent
 from dria_agent.tools import (
     APPLE_TOOLS,
@@ -14,16 +14,16 @@ from dria_agent.tools import (
 )
 
 
-def chat_mode(agent):
+async def chat_mode(agent):
     console = Console()
     console.print(
         "Chat mode. Type 'exit' to quit. Type 'clear' to clear the screen.",
         style="bold green",
     )
-    agent.run_chat()
+    await agent.run_chat()
 
 
-def main():
+async def main():
     parser = argparse.ArgumentParser(description="dria_agent CLI tool.")
     parser.add_argument("query", nargs="*", help="Query string")
     parser.add_argument("--chat", action="store_true", help="Enable chat mode")
@@ -49,13 +49,13 @@ def main():
     )
 
     if args.chat:
-        chat_mode(agent)
+        await chat_mode(agent)
     elif args.query:
         query = " ".join(args.query)
-        agent.run_feedback(query, print_results=True)
+        await agent.run_feedback(query, print_results=True)
     else:
         parser.print_help()
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())

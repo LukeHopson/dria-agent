@@ -121,7 +121,7 @@ class MLXToolCallingAgent(ToolCallingAgentBase):
         self.model, self.tokenizer = load(model)
         self.generate = generate
 
-    def run(
+    async def run(
         self,
         query: Union[str, List[Dict]],
         dry_run=False,
@@ -190,4 +190,6 @@ class MLXToolCallingAgent(ToolCallingAgentBase):
             return ExecutionResults(
                 content=content, results={}, data={}, errors=[], is_dry=True
             )
-        return execute_tool_call(completion=content, functions=[t.func for t in tools])
+        return await execute_tool_call(
+            completion=content, functions=[t.func for t in tools]
+        )

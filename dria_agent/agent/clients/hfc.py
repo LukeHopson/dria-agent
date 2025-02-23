@@ -32,7 +32,7 @@ class HuggingfaceToolCallingAgent(ToolCallingAgentBase):
         self.temperature = 0.5
         self.min_p = 0.95
 
-    def run(
+    async def run(
         self,
         query: Union[str, List[Dict]],
         dry_run=False,
@@ -94,4 +94,6 @@ class HuggingfaceToolCallingAgent(ToolCallingAgentBase):
             return ExecutionResults(
                 content=content, results={}, data={}, errors=[], is_dry=True
             )
-        return execute_tool_call(completion=content, functions=[t.func for t in tools])
+        return await execute_tool_call(
+            completion=content, functions=[t.func for t in tools]
+        )

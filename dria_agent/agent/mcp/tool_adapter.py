@@ -1,12 +1,9 @@
-import asyncio
-from typing import Any, List, Dict, Optional
 from functools import partial
+from typing import Any, List, Dict, Optional
 
-from .client import MCPClient
 from dria_agent.agent.tool import tool, ToolCall
-import nest_asyncio
-
-nest_asyncio.apply()
+from .client import MCPClient
+from .config import MCPConfigManager
 
 
 def create_mcp_tool_executor(
@@ -27,7 +24,7 @@ def create_mcp_tool_executor(
         """Async executor for the MCP tool"""
         return await client.execute_tool(tool_name, **kwargs)
 
-    def sync_execute(*args, **kwargs) -> Any:
+    async def async_execute(*args, **kwargs) -> Any:
         """Synchronous wrapper for the async executor"""
         if args and isinstance(args[0], dict):
             kwargs = args[0]
@@ -35,13 +32,12 @@ def create_mcp_tool_executor(
             required_params = tool_info.get("input_schema", {}).get("required", [])
             if not required_params:
                 raise ValueError(f"Given parameters undefined for tool {tool_name}")
-            args = args[:len(required_params)]
+            args = args[: len(required_params)]
             kwargs = {param: arg for param, arg in zip(required_params, args)}
-        loop = asyncio.get_event_loop()
-        return loop.run_until_complete(_execute(**kwargs))
+        return await _execute(**kwargs)
 
     # Create a function with the tool's name and docstring
-    tool_func = partial(sync_execute)
+    tool_func = partial(async_execute)
     tool_func.__name__ = tool_name
     tool_func.__doc__ = tool_info.get("description", "")
 
@@ -58,7 +54,7 @@ class MCPToolAdapter:
         Args:
             config_path: Optional path to MCP config file
         """
-        self.config_path = config_path
+        self.config_manager = MCPConfigManager(config_path)
         self.clients: Dict[str, MCPClient] = {}
         self._tools: List[ToolCall] = []
 
@@ -68,7 +64,7 @@ class MCPToolAdapter:
         Args:
             server_name: Name of the MCP server to connect to
         """
-        client = MCPClient(server_name, self.config_path)
+        client = MCPClient(server_name, self.config_manager)
         await client.connect()
         self.clients[server_name] = client
 
@@ -77,12 +73,9 @@ class MCPToolAdapter:
             tool_call = create_mcp_tool_executor(client, tool_info["name"], tool_info)
             self._tools.append(tool_call)
 
-    async def connect_servers(self, server_names: List[str]) -> None:
-        """Connect to multiple MCP servers and load their tools
-
-        Args:
-            server_names: List of MCP server names to connect to
-        """
+    async def connect_servers(self) -> None:
+        """Connect to multiple MCP servers and load their tools"""
+        server_names = list(self.config_manager.servers.keys())
         for server_name in server_names:
             await self.connect_server(server_name)
 
@@ -90,10 +83,3 @@ class MCPToolAdapter:
     def tools(self) -> List[ToolCall]:
         """Get all tools from connected MCP servers"""
         return self._tools
-
-    async def close(self) -> None:
-        """Close all MCP client connections"""
-        for client in self.clients.values():
-            await client.close()
-        self.clients.clear()
-        self._tools.clear()

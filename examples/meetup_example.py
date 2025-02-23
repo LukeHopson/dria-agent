@@ -1,5 +1,5 @@
 from dria_agent import ToolCallingAgent, tool
-
+import asyncio
 
 @tool
 def check_availability(day: str, start_time: str, end_time: str) -> bool:
@@ -63,6 +63,10 @@ def add_to_reminders(reminder_text: str) -> bool:
 
 agent = ToolCallingAgent(tools=[add_to_reminders, check_availability, make_appointment])
 
-# --- Example 1: Parallel calls ---
-query = "Schedule a meeting with my thesis supervisor today from 15:00 to 16:00 and add it to my reminders."
-execution = agent.run(query, num_tools=3, print_results=True)
+async def main():
+    # --- Example 1: Parallel calls ---
+    query = "Schedule a meeting with my thesis supervisor today from 15:00 to 16:00 and add it to my reminders."
+    execution = await agent.run_feedback(query, num_tools=3, print_results=True)
+
+if __name__ == "__main__":
+    asyncio.run(main())

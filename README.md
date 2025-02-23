@@ -108,7 +108,7 @@ agent = ToolCallingAgent(
 Use agent.run(query) to execute tasks with tools.
 
 ```python
-execution = agent.run("Check my calendar for tomorrow noon", print_results=True)
+execution = await agent.run("Check my calendar for tomorrow noon", print_results=True)
 ```
 #### Model Context Protocol (MCP) Support
 
@@ -143,7 +143,7 @@ async def run_agent():
 
     agent = ToolCallingAgent(tools=adapter.tools, backend="ollama")
     query = "fetch google.com"
-    agent.run(query, print_results=True)
+    execution = await agent.run(query, print_results=True)
 
 
 if __name__ == "__main__":

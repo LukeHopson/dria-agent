@@ -4,6 +4,7 @@ import logging
 import copy
 from dria_agent.agent.settings.providers import PROVIDER_URLS
 from dria_agent.pythonic.schemas import ExecutionResults
+from .mcp import MCPToolAdapter
 from .utils import *
 from .checkers import check_and_install_ollama
 from rich.logging import RichHandler
@@ -103,11 +104,22 @@ class ToolCallingAgent(object):
 
     def __init__(
         self,
-        tools: List,
+        mcp_file: Optional[str] = None,
+        tools: Optional[List] = None,
         backend: str = "ollama",
         mode: Literal["ultra_light", "fast", "balanced", "performant"] = "performant",
         **kwargs,
     ):
+        if mcp_file is None and tools is None:
+            raise ValueError(
+                "Either mcp_file or tools must be provided. "
+                "For MCP tools, provide path to MCP config JSON file. "
+                "For regular tools, provide a list of tool functions decorated with @tool."
+            )
+
+        self.adapter = MCPToolAdapter(mcp_file) if mcp_file is not None else None
+        tools = self.adapter.tools if self.adapter else tools
+
         agent_cls = self.BACKENDS.get(backend)
         embedding_cls = self.EMBEDDING_MAP.get(backend)
         if not agent_cls or not embedding_cls:
@@ -136,7 +148,13 @@ class ToolCallingAgent(object):
             **kwargs,
         )
 
-    def run(
+    async def initialize_servers(self):
+        """Asynchronously initialize the agent, including connecting to the MCP server."""
+        if self.adapter:
+            await self.adapter.connect_servers()
+            self.agent.set_tools(self.adapter.tools)
+
+    async def run(
         self,
         query: str,
         dry_run=False,
@@ -144,7 +162,7 @@ class ToolCallingAgent(object):
         num_tools=2,
         print_results=True,
     ) -> ExecutionResults:
-        execution = self.agent.run(
+        execution = await self.agent.run(
             query, dry_run=dry_run, show_completion=show_completion, num_tools=num_tools
         )
         if print_results:
@@ -163,7 +181,7 @@ class ToolCallingAgent(object):
 
         return execution
 
-    def run_feedback(
+    async def run_feedback(
         self,
         query: str,
         show_completion=True,
@@ -172,7 +190,7 @@ class ToolCallingAgent(object):
         max_iterations=3,
     ) -> ExecutionResults:
 
-        execution = self.agent.run(
+        execution = await self.agent.run(
             query, dry_run=False, show_completion=show_completion, num_tools=num_tools
         )
         if print_results:

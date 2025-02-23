@@ -34,3 +34,11 @@ class ToolCallingAgentBase(ABC):
         :return: The final response from the model.
         """
         pass
+
+    def set_tools(self, tools: List):
+        """
+        Set the tools for the agent.
+        """
+        self.tools = {tool.name: tool for tool in tools}
+        schemas = [str(tool) for name, tool in self.tools.items()]
+        self.db.add(schemas)

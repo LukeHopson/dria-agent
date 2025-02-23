@@ -1,7 +1,7 @@
 from dria_agent import ToolCallingAgent, tool
 import requests
 import os
-
+import asyncio
 
 @tool
 def post_to_farcaster(text: str) -> str:
@@ -44,5 +44,9 @@ def post_to_farcaster(text: str) -> str:
 
 agent = ToolCallingAgent(tools=[post_to_farcaster], backend="mlx")
 
-query = ""
-agent.run(query=query, print_results=True)
+async def main():
+    query = "Post a message to Farcaster"
+    execution = await agent.run_feedback(query, print_results=True)
+
+if __name__ == "__main__":
+    asyncio.run(main())

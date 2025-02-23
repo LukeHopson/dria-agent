@@ -8,15 +8,14 @@ from .config import MCPConfigManager
 
 
 class MCPClient:
-    def __init__(self, server_name: str, config_path: Optional[str] = None):
+    def __init__(self, server_name: str, config_manager: MCPConfigManager):
         """Initialize MCP client
 
         Args:
             server_name: Name of the MCP server to connect to
-            config_path: Optional path to MCP config file
         """
         self.server_name = server_name
-        self.config_manager = MCPConfigManager(config_path)
+        self.config_manager = config_manager
         self.server_config = self.config_manager.get_server_config(server_name)
 
         self.session: Optional[ClientSession] = None

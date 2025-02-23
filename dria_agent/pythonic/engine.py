@@ -1,8 +1,9 @@
+import asyncio
 from typing import Dict, Any, List, Callable
+
 from .schemas import FunctionResults, ExecutionResults
 from .util import (
     extract_codeblocks,
-    import_functions,
     setup_logger,
 )
 
@@ -10,7 +11,7 @@ from .util import (
 logger = setup_logger(__name__)
 
 
-def execute_python_code(
+async def execute_python_code(
     code: str,
     functions: List[Callable] = [],
     context_variables: Dict[str, Any] = {},
@@ -62,17 +63,39 @@ def execute_python_code(
     call_results = {}
 
     # Wrap the functions to capture their return values
-    def make_wrapper(func_name, func):
-        def wrapper(*args, **kwargs):
-            result = func(*args, **kwargs)
-            call_results.setdefault(func_name, []).append(result)
-            return result
+    async def make_wrapper(func_name, func):
+        nonlocal code
+        if asyncio.iscoroutinefunction(func):
+            code = code.replace(func_name, f"await {func_name}")
+
+            async def wrapper(*args, **kwargs):
+                try:
+                    result = await func(*args, **kwargs)
+                    call_results.setdefault(func_name, []).append(result)
+                    return result
+                except Exception as e:
+                    errors.append(f"Error in {func_name}: {str(e)}")
+                    raise
+
+        else:
+
+            def wrapper(*args, **kwargs):
+                try:
+                    result = func(*args, **kwargs)
+                    call_results.setdefault(func_name, []).append(result)
+                    return result
+                except Exception as e:
+                    errors.append(f"Error in {func_name}: {str(e)}")
+                    raise
 
         return wrapper
 
+    # Add asyncio to environment
+    env["asyncio"] = asyncio
+
     # Add the wrapped functions to the execution environment
     for func in functions:
-        env[func.__name__] = make_wrapper(func.__name__, func)
+        env[func.__name__] = await make_wrapper(func.__name__, func)
 
     # Add the typing types to the execution environment
     import_string = "from typing import List, Dict, Any, Union, Tuple, Callable"
@@ -83,7 +106,16 @@ def execute_python_code(
     # Execute the code and catch any exceptions
     errors = []
     try:
-        exec(code, env)
+        # Create async function from code
+        async_code = f"async def __async_exec():\n"
+        async_code += "".join(f"    {line}\n" for line in code.splitlines())
+        async_code += "\n    return locals()"
+
+        # Execute the async code
+        exec_globals = {}
+        exec(async_code, env, exec_globals)
+        result = await exec_globals["__async_exec"]()
+        env.update(result)
     except Exception as e:
         errors.append(str(e))
 
@@ -106,7 +138,7 @@ def execute_python_code(
     return FunctionResults(results=call_results, data=variables, errors=errors)
 
 
-def execute_tool_call(
+async def execute_tool_call(
     functions,
     completion,
     show_completion: bool = False,
@@ -122,7 +154,7 @@ def execute_tool_call(
         code = extract_codeblocks(completion) if "```" in completion else completion
 
         # Execute the code with mock functions
-        results = execute_python_code(code, functions)
+        results = await execute_python_code(code, functions)
         errors.extend(results.errors)
 
     except Exception as e:
