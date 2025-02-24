@@ -1,8 +1,10 @@
-from dria_agent import ToolCallingAgent, tool
-import requests
 from datetime import datetime, timedelta
 from typing import Dict, Tuple
-import asyncio
+
+import requests
+
+from dria_agent import ToolCallingAgent, tool
+
 # Cache to store exchange rate responses
 # Structure: {base_currency: (data, expiry_timestamp)}
 _CACHE: Dict[str, Tuple[dict, datetime]] = {}
@@ -108,21 +110,18 @@ def convert_currency(amount: float, from_currency: str, to_currency: str) -> dic
         "rate": rate,
     }
 
-async def main():
-    # Create an inference engine with the exchange rate tools
-    agent = ToolCallingAgent(tools=[get_exchange_rate, convert_currency], backend="ollama")
 
-    # --- Example 1: Get exchange rate ---
-    query = "What's the current exchange rate from USD to EUR?"
-    execution = await agent.run_feedback(query, print_results=True)
+# Create an inference engine with the exchange rate tools
+agent = ToolCallingAgent(tools=[get_exchange_rate, convert_currency], backend="ollama")
 
-    # --- Example 2: Convert currency ---
-    query = "Convert 100 USD to JPY"
-    execution = await agent.run_feedback(query, print_results=True)
+# --- Example 1: Get exchange rate ---
+query = "What's the current exchange rate from USD to EUR?"
+agent.run_feedback(query, print_results=True)
 
-    # --- Example 3: Multiple conversions ---
-    query = "How much is 50 EUR in USD and GBP?"
-    execution = await agent.run_feedback(query, print_results=True)
+# --- Example 2: Convert currency ---
+query = "Convert 100 USD to JPY"
+agent.run_feedback(query, print_results=True)
 
-if __name__ == "__main__":
-    asyncio.run(main())
+# --- Example 3: Multiple conversions ---
+query = "How much is 50 EUR in USD and GBP?"
+agent.run_feedback(query, print_results=True)

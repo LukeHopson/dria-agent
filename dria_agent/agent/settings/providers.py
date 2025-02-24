@@ -1,5 +1,3 @@
-import os
-
 LM_STUDIO_URL = "http://localhost:1234/v1"
 OLLAMA_URL = "http://localhost:11434/v1"
 VLLM_URL = "http://localhost:8000/v1"

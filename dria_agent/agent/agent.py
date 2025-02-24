@@ -1,14 +1,15 @@
-from typing import List, Literal
-import logging
-
 import copy
+import logging
+from typing import List, Literal
+
+from rich.console import Console
+from rich.logging import RichHandler
+
 from dria_agent.agent.settings.providers import PROVIDER_URLS
 from dria_agent.pythonic.schemas import ExecutionResults
+from .checkers import check_and_install_ollama
 from .mcp import MCPToolAdapter
 from .utils import *
-from .checkers import check_and_install_ollama
-from rich.logging import RichHandler
-from rich.console import Console
 
 console_handler = RichHandler(rich_tracebacks=True)
 file_handler = logging.FileHandler("app.log")
@@ -154,34 +155,77 @@ class ToolCallingAgent(object):
             await self.adapter.connect_servers()
             self.agent.set_tools(self.adapter.tools)
 
-    async def run(
+    @staticmethod
+    def _print_execution_results(execution: ExecutionResults, query: str) -> None:
+        """Helper method to print execution results in a consistent format"""
+        console = Console()
+        console.print(create_panel("Query", query, "End of Query"))
+        console.print(
+            create_panel(
+                title="Execution Result", content=str(execution.final_answer())
+            )
+        )
+
+        if execution.errors:
+            console.print(create_panel(title="Errors", content=str(execution.errors)))
+
+    def run(
         self,
         query: str,
-        dry_run=False,
-        show_completion=True,
-        num_tools=2,
-        print_results=True,
+        dry_run: bool = False,
+        show_completion: bool = True,
+        num_tools: int = 2,
+        print_results: bool = True,
     ) -> ExecutionResults:
-        execution = await self.agent.run(
+        """
+        Run the agent synchronously with the given query.
+
+        Args:
+            query: The query string to process
+            dry_run: If True, don't execute tools, just return planned execution
+            show_completion: Whether to show the agent's completion
+            num_tools: Number of tools to use for the query
+            print_results: Whether to print execution results
+
+        Returns:
+            ExecutionResults containing the execution outcome
+        """
+        execution = self.agent.run(
             query, dry_run=dry_run, show_completion=show_completion, num_tools=num_tools
         )
         if print_results:
-            console = Console()
-            console.print(create_panel("Query", query, "End of Query"))
-            console.print(
-                create_panel(
-                    title="Execution Result", content=str(execution.final_answer())
-                )
-            )
-
-            if execution.errors:
-                console.print(
-                    create_panel(title="Errors", content=str(execution.errors))
-                )
-
+            self._print_execution_results(execution, query)
         return execution
 
-    async def run_feedback(
+    async def async_run(
+        self,
+        query: str,
+        dry_run: bool = False,
+        show_completion: bool = True,
+        num_tools: int = 2,
+        print_results: bool = True,
+    ) -> ExecutionResults:
+        """
+        Run the agent asynchronously with the given query.
+
+        Args:
+            query: The query string to process
+            dry_run: If True, don't execute tools, just return planned execution
+            show_completion: Whether to show the agent's completion
+            num_tools: Number of tools to use for the query
+            print_results: Whether to print execution results
+
+        Returns:
+            ExecutionResults containing the execution outcome
+        """
+        execution = await self.agent.async_run(
+            query, dry_run=dry_run, show_completion=show_completion, num_tools=num_tools
+        )
+        if print_results:
+            self._print_execution_results(execution, query)
+        return execution
+
+    def run_feedback(
         self,
         query: str,
         show_completion=True,
@@ -190,7 +234,7 @@ class ToolCallingAgent(object):
         max_iterations=3,
     ) -> ExecutionResults:
 
-        execution = await self.agent.run(
+        execution = self.agent.run(
             query, dry_run=False, show_completion=show_completion, num_tools=num_tools
         )
         if print_results:

@@ -1,17 +1,16 @@
-from typing import List, Union, Callable, Dict, Optional
 import importlib.util
 import logging
-
 import math
 from functools import partial
+from typing import List, Union, Callable, Dict, Tuple
 
-
-from dria_agent.agent.settings.prompt import system_prompt
-from .base import ToolCallingAgentBase
-from dria_agent.pythonic.schemas import ExecutionResults
-from dria_agent.pythonic.engine import execute_tool_call
 from rich.console import Console
 from rich.panel import Panel
+
+from dria_agent.agent.settings.prompt import system_prompt
+from dria_agent.pythonic.engine import execute_tool_call, async_execute_tool_call
+from dria_agent.pythonic.schemas import ExecutionResults
+from .base import ToolCallingAgentBase
 
 logger = logging.getLogger(__name__)
 
@@ -121,14 +120,10 @@ class MLXToolCallingAgent(ToolCallingAgentBase):
         self.model, self.tokenizer = load(model)
         self.generate = generate
 
-    async def run(
-        self,
-        query: Union[str, List[Dict]],
-        dry_run=False,
-        show_completion=True,
-        num_tools=2,
-    ) -> ExecutionResults:
-
+    def _prepare_messages(
+        self, query: Union[str, List[Dict]], num_tools: int
+    ) -> Tuple[str, List[Callable]]:
+        """Prepare messages and tools for execution"""
         if num_tools <= 0 or num_tools > 5:
             raise RuntimeError(
                 "Number of tools cannot be less than 0 or greater than 3 for optimal performance"
@@ -140,8 +135,7 @@ class MLXToolCallingAgent(ToolCallingAgentBase):
             else query.copy()
         )
 
-        # Use the last three messages from user for search query.
-        # This is to keep a balance between context size and relevance.
+        # Get search query from user messages
         user_msgs = [m["content"] for m in messages if m["role"] == "user"]
         search_query = (
             user_msgs[-2]
@@ -149,23 +143,31 @@ class MLXToolCallingAgent(ToolCallingAgentBase):
             else user_msgs[-1]
         )
 
+        # Get relevant tools
         inds = self.db.nearest(search_query, k=num_tools)
         tools = [list(self.tools.values())[ind] for ind in inds]
-
         tool_info = "\n".join(str(tool) for tool in tools)
-        system_message = {
-            "role": "system",
-            "content": system_prompt.replace("{{functions_schema}}", tool_info),
-        }
-        messages.insert(0, system_message)
 
-        if getattr(self.tokenizer, "chat_template", None):
-            prompt = self.tokenizer.apply_chat_template(
-                messages, add_generation_prompt=True
-            )
-        else:
-            prompt = "\n".join(f"{m['role']}: {m['content']}" for m in messages)
+        # Add system message
+        messages.insert(
+            0,
+            {
+                "role": "system",
+                "content": system_prompt.replace("{{functions_schema}}", tool_info),
+            },
+        )
 
+        # Generate prompt
+        prompt = (
+            self.tokenizer.apply_chat_template(messages, add_generation_prompt=True)
+            if getattr(self.tokenizer, "chat_template", None)
+            else "\n".join(f"{m['role']}: {m['content']}" for m in messages)
+        )
+
+        return prompt, [t.func for t in tools]
+
+    def _generate_content(self, prompt: str) -> str:
+        """Generate content from prompt"""
         content = self.generate(
             self.model,
             self.tokenizer,
@@ -174,22 +176,54 @@ class MLXToolCallingAgent(ToolCallingAgentBase):
             max_tokens=750,
             sampler=self.sampler,
         )
+        return content.split("<|endoftext|>")[0].strip()
 
-        content = content.split("<|endoftext|>")[0].strip()
+    def _display_completion(self, content: str) -> None:
+        """Display completion in console"""
+        console = Console()
+        console.rule("[bold blue]Agent Response")
+        panel = Panel(content, title="Agent", subtitle="End of Response", expand=False)
+        console.print(panel)
+        console.rule()
+
+    def run(
+        self,
+        query: Union[str, List[Dict]],
+        dry_run: bool = False,
+        show_completion: bool = True,
+        num_tools: int = 2,
+    ) -> ExecutionResults:
+        """Run agent synchronously"""
+        prompt, tools = self._prepare_messages(query, num_tools)
+        content = self._generate_content(prompt)
 
         if show_completion:
-            console = Console()
-            console.rule("[bold blue]Agent Response")
-            panel = Panel(
-                content, title="Agent", subtitle="End of Response", expand=False
-            )
-            console.print(panel)
-            console.rule()
+            self._display_completion(content)
 
         if dry_run:
             return ExecutionResults(
                 content=content, results={}, data={}, errors=[], is_dry=True
             )
-        return await execute_tool_call(
-            completion=content, functions=[t.func for t in tools]
-        )
+
+        return execute_tool_call(completion=content, functions=tools)
+
+    async def async_run(
+        self,
+        query: Union[str, List[Dict]],
+        dry_run: bool = False,
+        show_completion: bool = True,
+        num_tools: int = 2,
+    ) -> ExecutionResults:
+        """Run agent asynchronously"""
+        prompt, tools = self._prepare_messages(query, num_tools)
+        content = self._generate_content(prompt)
+
+        if show_completion:
+            self._display_completion(content)
+
+        if dry_run:
+            return ExecutionResults(
+                content=content, results={}, data={}, errors=[], is_dry=True
+            )
+
+        return await async_execute_tool_call(completion=content, functions=tools)

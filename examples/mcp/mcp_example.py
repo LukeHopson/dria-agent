@@ -10,7 +10,7 @@ async def main():
 
     print("\n--- Example: Using MCP fetch tool ---")
     query = "fetch https://www.google.com"
-    await agent.run(query, print_results=True)
+    await agent.async_run(query, print_results=True)
 
 
 if __name__ == "__main__":
