@@ -1,6 +1,8 @@
-from dria_agent import ToolCallingAgent, tool
-import requests
 import os
+
+import requests
+
+from dria_agent import ToolCallingAgent, tool
 
 
 @tool
@@ -44,5 +46,5 @@ def post_to_farcaster(text: str) -> str:
 
 agent = ToolCallingAgent(tools=[post_to_farcaster], backend="mlx")
 
-query = ""
-agent.run(query=query, print_results=True)
+query = "Post a message to Farcaster"
+agent.run_feedback(query, print_results=True)

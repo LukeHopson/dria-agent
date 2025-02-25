@@ -763,7 +763,7 @@ def reply_to_email(self, content: str, cc: list[str], attachments: list[str]) ->
     try:
         run_applescript(script)
         return "Replied to the selected email successfully."
-    except subprocess.CalledProcessError as e:
+    except subprocess.CalledProcessError:
         return "An email has to be viewed in Mail to reply to it."
 
 
@@ -810,7 +810,7 @@ def forward_email(recipients: list[str], cc: list[str], attachments: list[str]) 
     try:
         run_applescript(script)
         return "Forwarded the selected email successfully."
-    except subprocess.CalledProcessError as e:
+    except subprocess.CalledProcessError:
         return "An email has to be viewed in Mail to forward it."
 
 
@@ -841,7 +841,7 @@ def get_email_content() -> str:
 
     try:
         return run_applescript(script)
-    except subprocess.CalledProcessError as e:
+    except subprocess.CalledProcessError:
         return "No message selected or found."
 
 
@@ -869,7 +869,7 @@ def find_and_select_first_email_from(sender: str) -> str:
     try:
         run_applescript(script)
         return "Found and selected the email successfully."
-    except subprocess.CalledProcessError as e:
+    except subprocess.CalledProcessError:
         return "No message found from the sender."
 
 

@@ -5,7 +5,6 @@ from typing import List, Optional
 # Slack
 try:
     from slack_sdk import WebClient
-    from slack_sdk.errors import SlackApiError
     from dotenv import load_dotenv
 
     load_dotenv()

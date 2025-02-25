@@ -65,4 +65,4 @@ agent = ToolCallingAgent(tools=[add_to_reminders, check_availability, make_appoi
 
 # --- Example 1: Parallel calls ---
 query = "Schedule a meeting with my thesis supervisor today from 15:00 to 16:00 and add it to my reminders."
-execution = agent.run(query, num_tools=3, print_results=True)
+agent.run_feedback(query, num_tools=3, print_results=True)

@@ -1,7 +1,9 @@
-from dria_agent import ToolCallingAgent, tool
-import requests
 from datetime import datetime, timedelta
 from typing import Dict, Tuple
+
+import requests
+
+from dria_agent import ToolCallingAgent, tool
 
 # Cache to store exchange rate responses
 # Structure: {base_currency: (data, expiry_timestamp)}
@@ -114,12 +116,12 @@ agent = ToolCallingAgent(tools=[get_exchange_rate, convert_currency], backend="o
 
 # --- Example 1: Get exchange rate ---
 query = "What's the current exchange rate from USD to EUR?"
-execution = agent.run_feedback(query, print_results=True)
+agent.run_feedback(query, print_results=True)
 
 # --- Example 2: Convert currency ---
 query = "Convert 100 USD to JPY"
-execution = agent.run(query, print_results=True)
+agent.run_feedback(query, print_results=True)
 
 # --- Example 3: Multiple conversions ---
 query = "How much is 50 EUR in USD and GBP?"
-execution = agent.run(query, print_results=True)
+agent.run_feedback(query, print_results=True)

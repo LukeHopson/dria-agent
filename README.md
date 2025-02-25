@@ -105,10 +105,59 @@ agent = ToolCallingAgent(
 
 ```
 
-Use agent.run(query) to execute tasks with tools.
+Use agent.run(query) to execute tasks with synchronous tools.
 
 ```python
 execution = agent.run("Check my calendar for tomorrow noon", print_results=True)
+```
+
+For using asynchronous tools or MCP, use agent.async_run(query).
+
+```python
+execution = await agent.async_run("Check my calendar for tomorrow noon", print_results=True)
+```
+
+#### Model Context Protocol (MCP) Support
+
+The agent supports MCP, which allows you to use tools from any MCP-compatible server.
+
+To use MCP, write JSON file and pass it to the agent class.
+
+Fetch Server Example:
+```json
+{
+  "mcpServers": {
+    "fetch": {
+      "command": "uvx",
+      "args": ["mcp-server-fetch"]
+    }
+  }
+}
+```
+
+Run Agent with MCP:
+
+```python
+from dria_agent import ToolCallingAgent
+from dria_agent.agent.mcp.tool_adapter import MCPToolAdapter
+
+
+async def run_agent():
+    """Run agent with MCP"""
+    
+    agent = ToolCallingAgent(mcp_file="mcp.json", backend="ollama")
+
+    query = "fetch google.com"
+    
+    try:
+      # server initialization is needed on MCP
+      await agent.initialize_servers()
+      execution = await agent.async_run(query, print_results=True)
+    finally:
+      await agent.close_servers()
+
+if __name__ == "__main__":
+    asyncio.run(run_agent())
 ```
 
 #### Run Modes

@@ -1,13 +1,15 @@
-from typing import List, Literal
-import logging
-
 import copy
+import logging
+from typing import List, Literal, Callable
+
+from rich.console import Console
+from rich.logging import RichHandler
+
 from dria_agent.agent.settings.providers import PROVIDER_URLS
 from dria_agent.pythonic.schemas import ExecutionResults
-from .utils import *
 from .checkers import check_and_install_ollama
-from rich.logging import RichHandler
-from rich.console import Console
+from .mcp import MCPToolAdapter
+from .utils import *
 
 console_handler = RichHandler(rich_tracebacks=True)
 file_handler = logging.FileHandler("app.log")
@@ -103,11 +105,22 @@ class ToolCallingAgent(object):
 
     def __init__(
         self,
-        tools: List,
+        mcp_file: Optional[str] = None,
+        tools: Optional[List] = None,
         backend: str = "ollama",
         mode: Literal["ultra_light", "fast", "balanced", "performant"] = "performant",
         **kwargs,
     ):
+        if mcp_file is None and tools is None:
+            raise ValueError(
+                "Either mcp_file or tools must be provided. "
+                "For MCP tools, provide path to MCP config JSON file. "
+                "For regular tools, provide a list of tool functions decorated with @tool."
+            )
+
+        self._mcp_adapter = MCPToolAdapter(mcp_file) if mcp_file is not None else None
+        tools = self._mcp_adapter.tools if self._mcp_adapter else tools
+
         agent_cls = self.BACKENDS.get(backend)
         embedding_cls = self.EMBEDDING_MAP.get(backend)
         if not agent_cls or not embedding_cls:
@@ -136,45 +149,173 @@ class ToolCallingAgent(object):
             **kwargs,
         )
 
+    async def initialize_servers(self):
+        """Asynchronously initialize the agent, including connecting to the MCP server."""
+        if self._mcp_adapter:
+            await self._mcp_adapter.connect_servers()
+            self.agent.set_tools(self._mcp_adapter.tools)
+
+    async def close_servers(self):
+        """Close the MCP server connection."""
+        await self._mcp_adapter.close_servers()
+
+    @staticmethod
+    def _print_execution_results(execution: ExecutionResults, query: str) -> None:
+        """Helper method to print execution results in a consistent format"""
+        console = Console()
+        console.print(create_panel("Query", query, "End of Query"))
+        console.print(
+            create_panel(
+                title="Execution Result", content=str(execution.final_answer())
+            )
+        )
+
+        if execution.errors:
+            console.print(create_panel(title="Errors", content=str(execution.errors)))
+
     def run(
         self,
         query: str,
-        dry_run=False,
-        show_completion=True,
-        num_tools=2,
-        print_results=True,
+        dry_run: bool = False,
+        show_completion: bool = True,
+        num_tools: int = 2,
+        print_results: bool = True,
     ) -> ExecutionResults:
+        """
+        Run the agent synchronously with the given query.
+
+        Args:
+            query: The query string to process
+            dry_run: If True, don't execute tools, just return planned execution
+            show_completion: Whether to show the agent's completion
+            num_tools: Number of tools to use for the query
+            print_results: Whether to print execution results
+
+        Returns:
+            ExecutionResults containing the execution outcome
+        """
         execution = self.agent.run(
             query, dry_run=dry_run, show_completion=show_completion, num_tools=num_tools
         )
         if print_results:
-            console = Console()
-            console.print(create_panel("Query", query, "End of Query"))
-            console.print(
-                create_panel(
-                    title="Execution Result", content=str(execution.final_answer())
-                )
-            )
+            self._print_execution_results(execution, query)
+        return execution
 
-            if execution.errors:
-                console.print(
-                    create_panel(title="Errors", content=str(execution.errors))
-                )
+    async def async_run(
+        self,
+        query: str,
+        dry_run: bool = False,
+        show_completion: bool = True,
+        num_tools: int = 2,
+        print_results: bool = True,
+    ) -> ExecutionResults:
+        """
+        Run the agent asynchronously with the given query.
 
+        Args:
+            query: The query string to process
+            dry_run: If True, don't execute tools, just return planned execution
+            show_completion: Whether to show the agent's completion
+            num_tools: Number of tools to use for the query
+            print_results: Whether to print execution results
+
+        Returns:
+            ExecutionResults containing the execution outcome
+        """
+
+        execution = await self.agent.async_run(
+            query, dry_run=dry_run, show_completion=show_completion, num_tools=num_tools
+        )
+        if print_results:
+            self._print_execution_results(execution, query)
         return execution
 
     def run_feedback(
         self,
         query: str,
-        show_completion=True,
-        num_tools=2,
-        print_results=True,
-        max_iterations=3,
+        show_completion: bool = True,
+        num_tools: int = 2,
+        print_results: bool = True,
+        max_iterations: int = 3,
     ) -> ExecutionResults:
+        """
+        Run the agent with feedback loop to handle errors.
 
-        execution = self.agent.run(
+        Args:
+            query: The query string to process
+            show_completion: Whether to show the agent's completion
+            num_tools: Number of tools to use for the query
+            print_results: Whether to print execution results
+            max_iterations: Maximum number of feedback iterations
+
+        Returns:
+            ExecutionResults containing the final execution outcome
+        """
+        execution = self._run_with_feedback(
+            query=query,
+            show_completion=show_completion,
+            num_tools=num_tools,
+            print_results=print_results,
+            max_iterations=max_iterations,
+            run_func=self.agent.run,
+        )
+        return execution
+
+    async def async_run_feedback(
+        self,
+        query: str,
+        show_completion: bool = True,
+        num_tools: int = 2,
+        print_results: bool = True,
+        max_iterations: int = 3,
+    ) -> ExecutionResults:
+        """
+        Run the agent asynchronously with feedback loop to handle errors.
+
+        Args:
+            query: The query string to process
+            show_completion: Whether to show the agent's completion
+            num_tools: Number of tools to use for the query
+            print_results: Whether to print execution results
+            max_iterations: Maximum number of feedback iterations
+
+        Returns:
+            ExecutionResults containing the final execution outcome
+        """
+        execution = await self._async_run_with_feedback(
+            query=query,
+            show_completion=show_completion,
+            num_tools=num_tools,
+            print_results=print_results,
+            max_iterations=max_iterations,
+        )
+        return execution
+
+    async def _async_run_with_feedback(
+        self,
+        query: str,
+        show_completion: bool,
+        num_tools: int,
+        print_results: bool,
+        max_iterations: int,
+    ) -> ExecutionResults:
+        """
+        Helper method implementing the async feedback loop logic.
+
+        Args:
+            query: The query string to process
+            show_completion: Whether to show the agent's completion
+            num_tools: Number of tools to use for the query
+            print_results: Whether to print execution results
+            max_iterations: Maximum number of feedback iterations
+
+        Returns:
+            ExecutionResults containing the final execution outcome
+        """
+        execution = await self.agent.async_run(
             query, dry_run=False, show_completion=show_completion, num_tools=num_tools
         )
+
         if print_results:
             console = Console()
             console.print(create_panel("Query", query, "End of Query"))
@@ -189,25 +330,27 @@ class ToolCallingAgent(object):
                     create_panel(title="Errors", content=str(execution.errors))
                 )
 
-        history = [
-            {"role": "user", "content": query},
-        ]
+        history = [{"role": "user", "content": query}]
 
         iterations = 0
-        while execution.errors:
-            history.append({"role": "assistant", "content": execution.content})
-            history.append(
-                {
-                    "role": "user",
-                    "content": f"Please re-think your code and fix errors. You got the following errors: {str(execution.errors)}",
-                }
+        while execution.errors and iterations < max_iterations:
+            history.extend(
+                [
+                    {"role": "assistant", "content": execution.content},
+                    {
+                        "role": "user",
+                        "content": f"Please re-think your code and fix errors. You got the following errors: {str(execution.errors)}",
+                    },
+                ]
             )
-            execution = self.agent.run(
+
+            execution = await self.agent.async_run(
                 copy.deepcopy(history),
                 dry_run=False,
                 show_completion=show_completion,
                 num_tools=num_tools,
             )
+
             if print_results:
                 console = Console()
                 console.print(create_panel("Query", query, "End of Query"))
@@ -221,9 +364,89 @@ class ToolCallingAgent(object):
                     console.print(
                         create_panel(title="Errors", content=str(execution.errors))
                     )
-            if iterations == max_iterations - 1:
-                break
+
             iterations += 1
+
+        return execution
+
+    def _run_with_feedback(
+        self,
+        query: str,
+        show_completion: bool,
+        num_tools: int,
+        print_results: bool,
+        max_iterations: int,
+        run_func: Callable,
+    ) -> ExecutionResults:
+        """
+        Helper method implementing the feedback loop logic.
+
+        Args:
+            query: The query string to process
+            show_completion: Whether to show the agent's completion
+            num_tools: Number of tools to use for the query
+            print_results: Whether to print execution results
+            max_iterations: Maximum number of feedback iterations
+            run_func: Function to use for running the agent (sync or async)
+
+        Returns:
+            ExecutionResults containing the final execution outcome
+        """
+        execution = run_func(
+            query, dry_run=False, show_completion=show_completion, num_tools=num_tools
+        )
+
+        if print_results:
+            console = Console()
+            console.print(create_panel("Query", query, "End of Query"))
+            console.print(
+                create_panel(
+                    title="Execution Result", content=str(execution.final_answer())
+                )
+            )
+
+            if execution.errors:
+                console.print(
+                    create_panel(title="Errors", content=str(execution.errors))
+                )
+
+        history = [{"role": "user", "content": query}]
+
+        iterations = 0
+        while execution.errors and iterations < max_iterations:
+            history.extend(
+                [
+                    {"role": "assistant", "content": execution.content},
+                    {
+                        "role": "user",
+                        "content": f"Please re-think your code and fix errors. You got the following errors: {str(execution.errors)}",
+                    },
+                ]
+            )
+
+            execution = run_func(
+                copy.deepcopy(history),
+                dry_run=False,
+                show_completion=show_completion,
+                num_tools=num_tools,
+            )
+
+            if print_results:
+                console = Console()
+                console.print(create_panel("Query", query, "End of Query"))
+                console.print(
+                    create_panel(
+                        title="Execution Result", content=str(execution.final_answer())
+                    )
+                )
+
+                if execution.errors:
+                    console.print(
+                        create_panel(title="Errors", content=str(execution.errors))
+                    )
+
+            iterations += 1
+
         return execution
 
     def run_chat(

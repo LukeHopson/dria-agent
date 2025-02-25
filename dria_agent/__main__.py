@@ -1,8 +1,8 @@
-import io
-import sys
-from rich.console import Console
-from rich.panel import Panel
 import argparse
+import asyncio
+
+from rich.console import Console
+
 from dria_agent import ToolCallingAgent
 from dria_agent.tools import (
     APPLE_TOOLS,
@@ -58,4 +58,8 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        console = Console()
+        console.print("Interrupted by user. Exiting...", style="bold red")

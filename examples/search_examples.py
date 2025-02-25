@@ -6,9 +6,8 @@ agent = ToolCallingAgent(tools=SEARCH_TOOLS + API_TOOLS + APPLE_TOOLS, backend="
 
 # --- Example 1: Parallel calls ---
 query = "Search for the best restaurants in Istanbul in google. Export urls of the results and save to istanbul.json."
-execution = agent.run(query, print_results=True, num_tools=4)
-
+agent.run_feedback(query, print_results=True, num_tools=4)
 
 # --- Example 2: Simple Call ---
 query = "What is the weather in Istanbul?"
-execution = agent.run(query, print_results=True)
+agent.run_feedback(query, print_results=True)
