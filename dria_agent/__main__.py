@@ -14,16 +14,16 @@ from dria_agent.tools import (
 )
 
 
-async def chat_mode(agent):
+def chat_mode(agent):
     console = Console()
     console.print(
         "Chat mode. Type 'exit' to quit. Type 'clear' to clear the screen.",
         style="bold green",
     )
-    await agent.run_chat()
+    agent.run_chat()
 
 
-async def main():
+def main():
     parser = argparse.ArgumentParser(description="dria_agent CLI tool.")
     parser.add_argument("query", nargs="*", help="Query string")
     parser.add_argument("--chat", action="store_true", help="Enable chat mode")
@@ -49,13 +49,17 @@ async def main():
     )
 
     if args.chat:
-        await chat_mode(agent)
+        chat_mode(agent)
     elif args.query:
         query = " ".join(args.query)
-        await agent.run_feedback(query, print_results=True)
+        agent.run_feedback(query, print_results=True)
     else:
         parser.print_help()
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    try:
+        main()
+    except KeyboardInterrupt:
+        console = Console()
+        console.print("Interrupted by user. Exiting...", style="bold red")

@@ -146,13 +146,15 @@ async def run_agent():
     """Run agent with MCP"""
     
     agent = ToolCallingAgent(mcp_file="mcp.json", backend="ollama")
-    
-    # server initialization is needed on MCP
-    await agent.initialize_servers()
-    
-    query = "fetch google.com"
-    execution = await agent.async_run(query, print_results=True)
 
+    query = "fetch google.com"
+    
+    try:
+      # server initialization is needed on MCP
+      await agent.initialize_servers()
+      execution = await agent.async_run(query, print_results=True)
+    finally:
+      await agent.close_servers()
 
 if __name__ == "__main__":
     asyncio.run(run_agent())

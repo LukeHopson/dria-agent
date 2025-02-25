@@ -118,8 +118,8 @@ class ToolCallingAgent(object):
                 "For regular tools, provide a list of tool functions decorated with @tool."
             )
 
-        self.adapter = MCPToolAdapter(mcp_file) if mcp_file is not None else None
-        tools = self.adapter.tools if self.adapter else tools
+        self._mcp_adapter = MCPToolAdapter(mcp_file) if mcp_file is not None else None
+        tools = self._mcp_adapter.tools if self._mcp_adapter else tools
 
         agent_cls = self.BACKENDS.get(backend)
         embedding_cls = self.EMBEDDING_MAP.get(backend)
@@ -151,9 +151,13 @@ class ToolCallingAgent(object):
 
     async def initialize_servers(self):
         """Asynchronously initialize the agent, including connecting to the MCP server."""
-        if self.adapter:
-            await self.adapter.connect_servers()
-            self.agent.set_tools(self.adapter.tools)
+        if self._mcp_adapter:
+            await self._mcp_adapter.connect_servers()
+            self.agent.set_tools(self._mcp_adapter.tools)
+
+    async def close_servers(self):
+        """Close the MCP server connection."""
+        await self._mcp_adapter.close_servers()
 
     @staticmethod
     def _print_execution_results(execution: ExecutionResults, query: str) -> None:
@@ -218,12 +222,14 @@ class ToolCallingAgent(object):
         Returns:
             ExecutionResults containing the execution outcome
         """
+
         execution = await self.agent.async_run(
             query, dry_run=dry_run, show_completion=show_completion, num_tools=num_tools
         )
         if print_results:
             self._print_execution_results(execution, query)
         return execution
+
     def run_feedback(
         self,
         query: str,
@@ -251,7 +257,7 @@ class ToolCallingAgent(object):
             num_tools=num_tools,
             print_results=print_results,
             max_iterations=max_iterations,
-            run_func=self.agent.run
+            run_func=self.agent.run,
         )
         return execution
 
@@ -276,19 +282,96 @@ class ToolCallingAgent(object):
         Returns:
             ExecutionResults containing the final execution outcome
         """
-        execution = await self._run_with_feedback(
+        execution = await self._async_run_with_feedback(
             query=query,
             show_completion=show_completion,
             num_tools=num_tools,
             print_results=print_results,
             max_iterations=max_iterations,
-            run_func=self.agent.async_run
         )
         return execution
 
-    @staticmethod
+    async def _async_run_with_feedback(
+        self,
+        query: str,
+        show_completion: bool,
+        num_tools: int,
+        print_results: bool,
+        max_iterations: int,
+    ) -> ExecutionResults:
+        """
+        Helper method implementing the async feedback loop logic.
+
+        Args:
+            query: The query string to process
+            show_completion: Whether to show the agent's completion
+            num_tools: Number of tools to use for the query
+            print_results: Whether to print execution results
+            max_iterations: Maximum number of feedback iterations
+
+        Returns:
+            ExecutionResults containing the final execution outcome
+        """
+        execution = await self.agent.async_run(
+            query, dry_run=False, show_completion=show_completion, num_tools=num_tools
+        )
+
+        if print_results:
+            console = Console()
+            console.print(create_panel("Query", query, "End of Query"))
+            console.print(
+                create_panel(
+                    title="Execution Result", content=str(execution.final_answer())
+                )
+            )
+
+            if execution.errors:
+                console.print(
+                    create_panel(title="Errors", content=str(execution.errors))
+                )
+
+        history = [{"role": "user", "content": query}]
+
+        iterations = 0
+        while execution.errors and iterations < max_iterations:
+            history.extend(
+                [
+                    {"role": "assistant", "content": execution.content},
+                    {
+                        "role": "user",
+                        "content": f"Please re-think your code and fix errors. You got the following errors: {str(execution.errors)}",
+                    },
+                ]
+            )
+
+            execution = await self.agent.async_run(
+                copy.deepcopy(history),
+                dry_run=False,
+                show_completion=show_completion,
+                num_tools=num_tools,
+            )
+
+            if print_results:
+                console = Console()
+                console.print(create_panel("Query", query, "End of Query"))
+                console.print(
+                    create_panel(
+                        title="Execution Result", content=str(execution.final_answer())
+                    )
+                )
+
+                if execution.errors:
+                    console.print(
+                        create_panel(title="Errors", content=str(execution.errors))
+                    )
+
+            iterations += 1
+
+        return execution
+
     def _run_with_feedback(
-            query: str,
+        self,
+        query: str,
         show_completion: bool,
         num_tools: int,
         print_results: bool,
@@ -318,8 +401,7 @@ class ToolCallingAgent(object):
             console.print(create_panel("Query", query, "End of Query"))
             console.print(
                 create_panel(
-                    title="Execution Result",
-                    content=str(execution.final_answer())
+                    title="Execution Result", content=str(execution.final_answer())
                 )
             )
 
@@ -332,19 +414,21 @@ class ToolCallingAgent(object):
 
         iterations = 0
         while execution.errors and iterations < max_iterations:
-            history.extend([
-                {"role": "assistant", "content": execution.content},
-                {
-                    "role": "user",
-                    "content": f"Please re-think your code and fix errors. You got the following errors: {str(execution.errors)}"
-                }
-            ])
+            history.extend(
+                [
+                    {"role": "assistant", "content": execution.content},
+                    {
+                        "role": "user",
+                        "content": f"Please re-think your code and fix errors. You got the following errors: {str(execution.errors)}",
+                    },
+                ]
+            )
 
             execution = run_func(
                 copy.deepcopy(history),
                 dry_run=False,
                 show_completion=show_completion,
-                num_tools=num_tools
+                num_tools=num_tools,
             )
 
             if print_results:
@@ -352,8 +436,7 @@ class ToolCallingAgent(object):
                 console.print(create_panel("Query", query, "End of Query"))
                 console.print(
                     create_panel(
-                        title="Execution Result",
-                        content=str(execution.final_answer())
+                        title="Execution Result", content=str(execution.final_answer())
                     )
                 )
 

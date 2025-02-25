@@ -34,7 +34,8 @@ def create_mcp_tool_executor(
                 raise ValueError(f"Given parameters undefined for tool {tool_name}")
             args = args[: len(required_params)]
             kwargs = {param: arg for param, arg in zip(required_params, args)}
-        return await _execute(**kwargs)
+        execution_result = await _execute(**kwargs)
+        return execution_result.content[0].text
 
     # Create a function with the tool's name and docstring
     tool_func = partial(async_execute)
@@ -78,6 +79,24 @@ class MCPToolAdapter:
         server_names = list(self.config_manager.servers.keys())
         for server_name in server_names:
             await self.connect_server(server_name)
+
+    async def close_servers(self) -> None:
+        """Close all connected MCP servers"""
+        try:
+            for client in self.clients.values():
+                try:
+                    await client.cleanup()
+                except GeneratorExit:
+                    # Handle GeneratorExit during individual client cleanup
+                    continue
+                except Exception as e:
+                    # Log but continue with other clients
+                    print(f"Error during cleanup of server '{client.server_name}': {e}")
+                    continue
+        except GeneratorExit:
+            # Handle GeneratorExit for the entire close operation
+            # Don't re-raise GeneratorExit as it's a control flow exception
+            return
 
     @property
     def tools(self) -> List[ToolCall]:

@@ -1,3 +1,4 @@
+import asyncio
 from contextlib import AsyncExitStack
 from typing import Optional, List, Dict, Any
 
@@ -20,27 +21,39 @@ class MCPClient:
 
         self.session: Optional[ClientSession] = None
         self.exit_stack = AsyncExitStack()
+        self._cleanup_lock: asyncio.Lock = asyncio.Lock()
         self.stdio = None
         self.write = None
         self._available_tools: List[Dict[str, Any]] = []
 
     async def connect(self):
-        """Connect to the MCP server"""
-        server_params = StdioServerParameters(
-            command=self.server_config.command,
-            args=self.server_config.args,
-            env=self.server_config.env,
-        )
+        try:
+            """Connect to the MCP server"""
+            server_params = StdioServerParameters(
+                command=self.server_config.command,
+                args=self.server_config.args,
+                env=self.server_config.env,
+            )
 
-        stdio_transport = await self.exit_stack.enter_async_context(
-            stdio_client(server_params)
-        )
-        self.stdio, self.write = stdio_transport
-        self.session = await self.exit_stack.enter_async_context(
-            ClientSession(self.stdio, self.write)
-        )
+            stdio_transport = await self.exit_stack.enter_async_context(
+                stdio_client(server_params)
+            )
+            self.stdio, self.write = stdio_transport
+            session = await self.exit_stack.enter_async_context(
+                ClientSession(self.stdio, self.write)
+            )
 
-        await self.session.initialize()
+            await session.initialize()
+            self.session = session
+        except GeneratorExit:
+            # Handle GeneratorExit separately - this happens when a generator/coroutine
+            # is closed before it completes (e.g., during task cancellation)
+            await self.cleanup()
+            # Don't re-raise GeneratorExit as it's a control flow exception
+            return
+        except Exception as e:
+            await self.cleanup()
+            raise e
         await self._update_available_tools()
 
     async def _update_available_tools(self):
@@ -78,7 +91,8 @@ class MCPClient:
 
         return await self.session.call_tool(tool_name, kwargs)
 
-    async def close(self):
-        """Close the MCP client connection"""
-        if self.exit_stack:
+    async def cleanup(self) -> None:
+        """Clean up server resources."""
+        async with self._cleanup_lock:
             await self.exit_stack.aclose()
+            self.session = None
