@@ -3,7 +3,7 @@ from contextlib import AsyncExitStack
 from typing import Optional, List, Dict, Any
 
 from mcp import ClientSession, StdioServerParameters
-from mcp.client.stdio import stdio_client
+from mcp.client.stdio import stdio_client, get_default_environment
 
 from .config import MCPConfigManager
 
@@ -27,6 +27,9 @@ class MCPClient:
         self._available_tools: List[Dict[str, Any]] = []
 
     async def connect(self):
+        if self.server_config.env:
+            default_envs = get_default_environment()
+            self.server_config.env = {**default_envs, **self.server_config.env}
         try:
             """Connect to the MCP server"""
             server_params = StdioServerParameters(
