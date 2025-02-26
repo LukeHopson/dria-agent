@@ -41,6 +41,7 @@ def create_mcp_tool_executor(
     tool_func = partial(async_execute)
     tool_func.__name__ = tool_name
     tool_func.__doc__ = tool_info.get("description", "")
+    tool_func.input_schema = tool_info.get("input_schema", None)
 
     # Wrap it with @tool decorator
     return tool(tool_func)

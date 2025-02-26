@@ -13,29 +13,50 @@ class ToolCall:
             logger.info(
                 "No docstring provided, please add detailed docstrings for effective tool calling."
             )
-        self.signature = inspect.signature(func)
 
-        # Extract parameters information.
-        self.params = {}
-        for param_name, param in self.signature.parameters.items():
-            self.params[param_name] = {
-                "annotation": (
-                    param.annotation
-                    if param.annotation != inspect.Parameter.empty
-                    else None
-                ),
-                "default": (
-                    param.default if param.default != inspect.Parameter.empty else None
-                ),
-                "kind": param.kind,
-            }
+        self.input_schema = getattr(func, "input_schema", None)
+        if self.input_schema:
+            self.params = self._extract_params_from_schema(self.input_schema)
+            self.signature = None
+        else:
+            self.signature = inspect.signature(func)
+
+            self.params = {}
+            for param_name, param in self.signature.parameters.items():
+                self.params[param_name] = {
+                    "annotation": (
+                        param.annotation
+                        if param.annotation != inspect.Parameter.empty
+                        else None
+                    ),
+                    "default": (
+                        param.default
+                        if param.default != inspect.Parameter.empty
+                        else None
+                    ),
+                    "kind": param.kind,
+                }
 
         # Extract return type.
         self.return_type = (
             self.signature.return_annotation
-            if self.signature.return_annotation != inspect.Signature.empty
+            if self.signature
+            and self.signature.return_annotation != inspect.Signature.empty
             else None
         )
+
+    @staticmethod
+    def _extract_params_from_schema(schema):
+        """Extract parameters from JSON schema"""
+        params = {}
+        if "properties" in schema:
+            for prop_name, prop_details in schema["properties"].items():
+                params[prop_name] = {
+                    "annotation": prop_details.get("type"),
+                    "default": None,
+                    "kind": inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                }
+        return params
 
     def __call__(self, *args, **kwargs):
         return self.func(*args, **kwargs)
