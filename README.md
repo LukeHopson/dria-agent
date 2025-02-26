@@ -40,6 +40,7 @@ https://github.com/user-attachments/assets/5f7cbd26-7ba3-46aa-926f-4ac68de5ccb0
 To install the package run:
 ```bash
 pip install dria_agent # Best for CPU inference, uses ollama
+pip install 'dria_agent[mcp]' # To use MCP tools
 pip install 'dria_agent[mlx]' # To use MLX as backend for macOS. 
 pip install 'dria_agent[huggingface]' # HuggingFace/transformers backend for GPU.
 pip install 'dria_agent[mlx, tools]' # In order to use factory tools in package, run with backend of your choice
