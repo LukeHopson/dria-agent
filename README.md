@@ -57,6 +57,12 @@ For CLI, you should install tools with backend of your choice
 pip install 'dria_agent[ollama, tools]'
 ```
 
+For using MCP tools on cli, you need to run
+
+```bash
+pip install 'dria_agent[ollama, tools, mcp]'
+```
+
 And then, run:
 
 ```bash
@@ -64,9 +70,16 @@ dria_agent --chat  # for chat mode
 dria_agent Please solve 5x^2 + 8x + 9 = 0 and 4x^2 + 11x - 3 = 0 # for single query
 ```
 
+For running MPC from cli mode;
+
+```bash
+dria_agent --mcp_path mcp.json query search term synthetic data
+dria_agent --chat --mcp_path mcp.json 
+```
+
 For help, `dria_agent --help`
 ```
-dria_agent [-h] [--chat] [--backend {mlx,ollama,huggingface}]
+dria_agent [-h] [--chat] [--mcp_path ...] [--backend {mlx,ollama,huggingface}]
                   [--agent_mode {ultra_light,fast,balanced,performant}]
                   [query ...]
 ```
