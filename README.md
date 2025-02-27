@@ -133,6 +133,10 @@ execution = await agent.async_run("Check my calendar for tomorrow noon", print_r
 
 #### Model Context Protocol (MCP) Support
 
+
+https://github.com/user-attachments/assets/a77c17eb-937c-42f8-bcca-7105439cd833
+
+
 The agent supports MCP, which allows you to use tools from any MCP-compatible server.
 
 To use MCP, write JSON file and pass it to the agent class.
