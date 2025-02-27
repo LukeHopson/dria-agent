@@ -73,6 +73,17 @@ class ToolCallingAgentBase(ABC):
         """
         pass
 
+    @abstractmethod
+    def instruct(self, query: Union[str, List[Dict]], show_completion=False):
+        """
+        Instruct the agent to respond to a query without executing any tools.
+
+        :param query: A string (query) or a list of message dicts for a conversation.
+        :param show_completion: If True, displays the completion in the console.
+        :return: The final response from the model.
+        """
+        pass
+
     def set_tools(self, tools: List):
         """
         Set the tools for the agent.

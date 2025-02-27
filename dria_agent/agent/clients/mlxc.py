@@ -227,3 +227,22 @@ class MLXToolCallingAgent(ToolCallingAgentBase):
             )
 
         return await async_execute_tool_call(completion=content, functions=tools)
+
+    def instruct(self, query: Union[str, List[Dict]], show_completion: bool = False):
+
+        messages = (
+            [{"role": "user", "content": query}]
+            if isinstance(query, str)
+            else query.copy()
+        )
+
+        prompt = (
+            self.tokenizer.apply_chat_template(messages, add_generation_prompt=True)
+            if getattr(self.tokenizer, "chat_template", None)
+            else "\n".join(f"{m['role']}: {m['content']}" for m in messages)
+        )
+        content = self._generate_content(prompt)
+        if show_completion:
+            self._display_completion("Instruct Mode: \n\n" + content)
+
+        return content

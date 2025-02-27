@@ -119,3 +119,17 @@ class ApiToolCallingAgent(ToolCallingAgentBase):
             )
 
         return await async_execute_tool_call(completion=content, functions=tools)
+
+    def instruct(self, query: Union[str, List[Dict]], show_completion: bool = False):
+
+        messages = (
+            [{"role": "user", "content": query}]
+            if isinstance(query, str)
+            else query.copy()
+        )
+
+        content = self._generate_content(messages)
+        if show_completion:
+            self._display_completion("Instruct Mode: \n\n" + content)
+
+        return content

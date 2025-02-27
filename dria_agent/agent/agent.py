@@ -553,3 +553,13 @@ class ToolCallingAgent(object):
                 iterations += 1
             history.append({"role": "assistant", "content": execution.content})
             history.append({"role": "tool", "content": str(execution.final_answer())})
+
+    def instruct(self, message: str):
+        """
+        Instruct mode for agent, no tool calls.
+
+        Args:
+            message: The message to respond to
+        """
+        return self.agent.instruct(message, show_completion=True)
+
