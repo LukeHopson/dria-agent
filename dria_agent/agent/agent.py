@@ -562,4 +562,3 @@ class ToolCallingAgent(object):
             message: The message to respond to
         """
         return self.agent.instruct(message, show_completion=True)
-

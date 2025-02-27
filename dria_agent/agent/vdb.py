@@ -1,6 +1,7 @@
 """
 A simple, lightweight vector database for handling tools larger/longer than context size.
 """
+
 import logging
 
 import numpy as np
@@ -9,6 +10,7 @@ from ollama import ResponseError
 from .embedder import BaseEmbedding
 
 logger = logging.getLogger(__name__)
+
 
 class ToolDB:
     def __init__(self, embedding: BaseEmbedding, max_size=1000):
@@ -26,7 +28,9 @@ class ToolDB:
                 try:
                     embeddings.append(self.embedding.embed(t))
                 except ResponseError:
-                    logger.info(f"Doc string is too long for function {t.split()[1].split('(')[0]}")
+                    logger.info(
+                        f"Doc string is too long for function {t.split()[1].split('(')[0]}"
+                    )
                     continue
 
         for t, e in zip(texts, embeddings):

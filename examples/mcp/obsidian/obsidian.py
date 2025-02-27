@@ -12,7 +12,9 @@ async def main():
 
         # Search notes for specific term
         search_query = "search my notes term 'synthetic data' on vault 'my vault'"
-        result = await agent.async_run_feedback(search_query, print_results=False, num_tools=5)
+        result = await agent.async_run_feedback(
+            search_query, print_results=False, num_tools=5
+        )
         print(f"\n{result.final_answer()}")
 
         if result.errors:

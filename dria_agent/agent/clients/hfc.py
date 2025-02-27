@@ -149,7 +149,7 @@ class HuggingfaceToolCallingAgent(ToolCallingAgentBase):
         )
 
         prompt = (
-                "\n".join(f"{msg['role']}: {msg['content']}" for msg in messages) + "\n"
+            "\n".join(f"{msg['role']}: {msg['content']}" for msg in messages) + "\n"
         )
 
         content = self._generate_content(prompt)

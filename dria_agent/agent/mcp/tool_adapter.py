@@ -24,7 +24,9 @@ def create_mcp_tool_executor(
         """Async executor for the MCP tool"""
         fixed_tool_name = tool_name
         if "_typescript" in fixed_tool_name:
-            fixed_tool_name = fixed_tool_name.replace("_", "-").replace("-typescript", "")
+            fixed_tool_name = fixed_tool_name.replace("_", "-").replace(
+                "-typescript", ""
+            )
         return await client.execute_tool(fixed_tool_name, **kwargs)
 
     async def async_execute(*args, **kwargs) -> Any:
@@ -42,7 +44,7 @@ def create_mcp_tool_executor(
 
     # Create a function with the tool's name and docstring
     tool_func = partial(async_execute)
-    if "-" in tool_name: # Typescript - Python compatibility check
+    if "-" in tool_name:  # Typescript - Python compatibility check
         tool_name = tool_name.replace("-", "_")
         tool_name += "_typescript"
     tool_func.__name__ = tool_name

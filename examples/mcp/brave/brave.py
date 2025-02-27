@@ -9,9 +9,11 @@ async def main():
 
     try:
         await agent.initialize_servers()
-        
+
         # Run a specific search query
-        result = await agent.async_run_feedback("synthetic data", print_results=False, num_tools=5)
+        result = await agent.async_run_feedback(
+            "synthetic data", print_results=False, num_tools=5
+        )
         print(f"\n{result.final_answer()}")
 
         if result.errors:

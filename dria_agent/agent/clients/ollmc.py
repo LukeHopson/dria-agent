@@ -137,4 +137,3 @@ class OllamaToolCallingAgent(ToolCallingAgentBase):
             self._display_completion("Instruct Mode: \n\n" + content)
 
         return content
-
