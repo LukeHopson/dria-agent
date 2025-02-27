@@ -496,3 +496,60 @@ class ToolCallingAgent(object):
                 iterations += 1
             history.append({"role": "assistant", "content": execution.content})
             history.append({"role": "tool", "content": str(execution.final_answer())})
+
+    async def async_run_chat(
+        self, show_completion=True, num_tools=3, print_results=True, max_iterations=1
+    ) -> None:
+        """
+        Run an asynchronous chat session with the agent.
+
+        Args:
+            show_completion: Whether to show the agent's completion
+            num_tools: Number of tools to use for the query
+            print_results: Whether to print execution results
+            max_iterations: Maximum number of feedback iterations for error correction
+        """
+        history = []
+        console = Console()
+        while True:
+            user_input = input(": ").strip()
+            if user_input.lower() in ("exit", "quit"):
+                break
+            history.append({"role": "user", "content": user_input})
+            history = compress_history(history, threshold=3500)
+
+            execution = await self.agent.async_run(
+                copy.deepcopy(history),
+                dry_run=False,
+                show_completion=show_completion,
+                num_tools=num_tools,
+            )
+            if print_results:
+                console.print(create_panel("User Query", user_input, "End of Query"))
+                console.print(
+                    create_panel("Execution Result", str(execution.final_answer()))
+                )
+                if execution.errors:
+                    console.print(create_panel("Errors", str(execution.errors)))
+            iterations = 0
+            while execution.errors and iterations < max_iterations:
+                history.append({"role": "assistant", "content": execution.content})
+                feedback = f"Please re-think your response and fix errors. Errors: {execution.errors}"
+                history.append({"role": "user", "content": feedback})
+                execution = await self.agent.async_run(
+                    copy.deepcopy(history),
+                    dry_run=False,
+                    show_completion=show_completion,
+                    num_tools=num_tools,
+                )
+                if print_results:
+                    console.print(
+                        create_panel(
+                            "Assistant Response", str(execution.final_answer())
+                        )
+                    )
+                    if execution.errors:
+                        console.print(create_panel("Errors", str(execution.errors)))
+                iterations += 1
+            history.append({"role": "assistant", "content": execution.content})
+            history.append({"role": "tool", "content": str(execution.final_answer())})
