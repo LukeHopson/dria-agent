@@ -11,7 +11,7 @@ https://github.com/user-attachments/assets/909656ad-4924-435a-8b4d-ac1b6d664d9c
 
 ### Features
 
-Tiny-Agent-α is an extension of [Dria-Agent-a](https://huggingface.co/collections/driaforall/dria-agent-a-67a61f4b7d3d544fe5d3cd8a=), trained on top of the Qwen2.5-Coder series to be used in edge devices. 
+[Tiny-Agent-α](https://huggingface.co/collections/driaforall/tiny-agent-a-67ab79e98f121c6f6d79becf) is an extension of [Dria-Agent-a](https://huggingface.co/collections/driaforall/dria-agent-a-67a61f4b7d3d544fe5d3cd8a), trained on top of the Qwen2.5-Coder series to be used in edge devices. 
 These models are carefully fine-tuned with quantization aware training to minimize performance degradation after quantization. 
 The smallest model is 0.5B with 4bit quantization (398MB on disk), and the largest model is 3B with 4bit quantization.
 
