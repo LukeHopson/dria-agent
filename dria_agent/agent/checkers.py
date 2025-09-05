@@ -3,7 +3,7 @@ import subprocess
 import platform
 import logging
 import tempfile
-import urllib3 as urllib
+import urllib.requests
 import requests
 import os
 
